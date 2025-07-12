@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background_color"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ui.admin.AdminDashboardActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/primary_color"
+            android:title="Admin Dashboard"
+            android:titleTextColor="@android:color/white" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginBottom="24dp"
+            android:src="@drawable/ic_admin"
+            android:contentDescription="Admin Icon" />
+
+        <TextView
+            android:id="@+id/tv_welcome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Welcome Admin!"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/primary_color"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kelola channel TV dan pelanggan"
+            android:textSize="16sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="32dp" />
+
+        <Button
+            android:id="@+id/btn_manage_channels"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Kelola Channel"
+            android:textSize="16sp"
+            android:backgroundTint="@color/primary_color"
+            android:layout_marginBottom="16dp"
+            android:enabled="false"
+            android:alpha="0.6" />
+
+        <Button
+            android:id="@+id/btn_manage_customers"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Kelola Pelanggan"
+            android:textSize="16sp"
+            android:backgroundTint="@color/primary_color"
+            android:layout_marginBottom="16dp"
+            android:enabled="false"
+            android:alpha="0.6" />
+
+        <Button
+            android:id="@+id/btn_reports"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Laporan"
+            android:textSize="16sp"
+            android:backgroundTint="@color/primary_color"
+            android:layout_marginBottom="32dp"
+            android:enabled="false"
+            android:alpha="0.6" />
+
+        <Button
+            android:id="@+id/btn_logout"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Logout"
+            android:textSize="16sp"
+            android:backgroundTint="@color/accent_color"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+    </LinearLayout>
+
+</LinearLayout>

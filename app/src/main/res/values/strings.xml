@@ -1,0 +1,49 @@
+<resources>
+    <string name="app_name">layanantv</string>
+    <!-- Auth Strings -->
+    <string name="login_title">Login</string>
+    <string name="register_title">Daftar</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
+    <string name="confirm_password_hint">Konfirmasi Password</string>
+    <string name="name_hint">Nama Lengkap</string>
+
+    <string name="login_button">Login</string>
+    <string name="register_button">Daftar</string>
+    <string name="logout_button">Logout</string>
+
+    <string name="login_prompt">Belum punya akun? Daftar</string>
+    <string name="register_prompt">Sudah punya akun? Login</string>
+
+    <!-- Dashboard Strings -->
+    <string name="admin_dashboard_title">Admin Dashboard</string>
+    <string name="customer_dashboard_title">Customer Dashboard</string>
+    <string name="welcome_admin">Selamat datang, Admin!</string>
+    <string name="welcome_customer">Selamat datang, Customer!</string>
+
+    <!-- Menu Strings -->
+    <string name="manage_channels">Kelola Channel</string>
+    <string name="manage_customers">Kelola Pelanggan</string>
+    <string name="reports">Laporan</string>
+    <string name="browse_channels">Jelajahi Channel</string>
+    <string name="my_subscriptions">Langganan Saya</string>
+    <string name="profile">Profil</string>
+
+    <!-- Validation Messages -->
+    <string name="error_email_empty">Email tidak boleh kosong</string>
+    <string name="error_email_invalid">Format email tidak valid</string>
+    <string name="error_password_empty">Password tidak boleh kosong</string>
+    <string name="error_password_short">Password minimal 6 karakter</string>
+    <string name="error_password_mismatch">Password tidak cocok</string>
+    <string name="error_name_empty">Nama tidak boleh kosong</string>
+    <string name="error_name_short">Nama minimal 2 karakter</string>
+
+    <!-- Success Messages -->
+    <string name="login_success">Login berhasil</string>
+    <string name="register_success">Registrasi berhasil</string>
+    <string name="logout_success">Logout berhasil</string>
+
+    <!-- Info Messages -->
+    <string name="admin_email_info">Gunakan email @admin.channeltv.com untuk login sebagai admin</string>
+    <string name="loading">Memuat...</string>
+</resources>

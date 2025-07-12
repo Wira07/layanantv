@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1051757774165",
+    "project_id": "layanantv-30734",
+    "storage_bucket": "layanantv-30734.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1051757774165:android:6ca7e7abcc46e634ac5bdc",
+        "android_client_info": {
+          "package_name": "com.ali.layanantv"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBeSq1XX9uy7P8Rou_JE4P8JEczV42I6fE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
