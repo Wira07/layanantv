@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background_color">
+
+    <!-- Chat Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/primary_color"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_customer_service"
+            android:layout_marginEnd="12dp" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Customer Service"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Online - Siap membantu Anda"
+                android:textSize="12sp"
+                android:textColor="@android:color/white"
+                android:alpha="0.8" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_online"
+            android:layout_marginStart="8dp" />
+
+    </LinearLayout>
+
+    <!-- Quick Reply Buttons -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_quick_reply_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Masalah Channel"
+                android:textSize="12sp"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/accent_color"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+            <Button
+                android:id="@+id/btn_quick_reply_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Perpanjang Langganan"
+                android:textSize="12sp"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/accent_color"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+            <Button
+                android:id="@+id/btn_quick_reply_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Batalkan Langganan"
+                android:textSize="12sp"
+                android:backgroundTint="@color/accent_color"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- Chat Messages -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_chat_messages"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp" />
+
+    <!-- Message Input -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="@color/background_color"
+        android:elevation="4dp">
+
+        <EditText
+            android:id="@+id/et_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Ketik pesan Anda..."
+            android:background="@drawable/edittext_background"
+            android:padding="12dp"
+            android:layout_marginEnd="8dp"
+            android:maxLines="3"
+            android:inputType="textMultiLine|textCapSentences" />
+
+        <Button
+            android:id="@+id/btn_send_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kirim"
+            android:textSize="14sp"
+            android:backgroundTint="@color/primary_color"
+            android:minWidth="0dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp" />
+
+    </LinearLayout>
+
+    <!-- Chat Info -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/background_light"
+        android:padding="8dp"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tim customer service siap membantu 24/7"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary"
+            android:drawableStart="@drawable/ic_info"
+            android:drawablePadding="4dp" />
+
+    </LinearLayout>
+
+</LinearLayout>

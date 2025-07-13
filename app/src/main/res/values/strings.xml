@@ -46,4 +46,6 @@
     <!-- Info Messages -->
     <string name="admin_email_info">Gunakan email @admin.channeltv.com untuk login sebagai admin</string>
     <string name="loading">Memuat...</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

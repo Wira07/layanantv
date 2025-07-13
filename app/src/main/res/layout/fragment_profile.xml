@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_color">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Profile Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/card_background"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:layout_marginBottom="16dp"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:src="@drawable/ic_profile_large"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:id="@+id/tv_user_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ali Rahman"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary_color"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tv_user_email"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ali.rahman@email.com"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tv_user_points"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2500 Point"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/accent_color"
+                android:drawableStart="@drawable/ic_star"
+                android:drawablePadding="6dp" />
+
+        </LinearLayout>
+
+        <!-- Contact Information -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/card_background"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Informasi Kontak"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary_color"
+                android:layout_marginBottom="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_phone"
+                    android:layout_marginEnd="12dp"
+                    android:layout_gravity="center_vertical" />
+
+                <TextView
+                    android:id="@+id/tv_user_phone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="+62 812-3456-7890"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_email"
+                    android:layout_marginEnd="12dp"
+                    android:layout_gravity="center_vertical" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ali.rahman@email.com"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Profile Actions -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pengaturan Profil"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btn_edit_profile"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Edit Profil"
+            android:textSize="14sp"
+            android:backgroundTint="@color/primary_color"
+            android:layout_marginBottom="8dp"
+            android:drawableStart="@drawable/ic_edit"
+            android:drawablePadding="8dp"
+            android:gravity="start|center_vertical"
+            android:paddingStart="16dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+        <Button
+            android:id="@+id/btn_change_password"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Ubah Password"
+            android:textSize="14sp"
+            android:backgroundTint="@color/primary_color"
+            android:layout_marginBottom="8dp"
+            android:drawableStart="@drawable/ic_lock"
+            android:drawablePadding="8dp"
+            android:gravity="start|center_vertical"
+            android:paddingStart="16dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+        <Button
+            android:id="@+id/btn_notification_settings"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Pengaturan Notifikasi"
+            android:textSize="14sp"
+            android:backgroundTint="@color/primary_color"
+            android:layout_marginBottom="16dp"
+            android:drawableStart="@drawable/ic_notification"
+            android:drawablePadding="8dp"
+            android:gravity="start|center_vertical"
+            android:paddingStart="16dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+        <!-- App Actions -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Aplikasi"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btn_help"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Bantuan dan FAQ"
+            android:textSize="14sp"
+            android:backgroundTint="@color/text_secondary"
+            android:layout_marginBottom="8dp"
+            android:drawableStart="@drawable/ic_help"
+            android:drawablePadding="8dp"
+            android:gravity="start|center_vertical"
+            android:paddingStart="16dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+        <Button
+            android:id="@+id/btn_about"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Tentang Aplikasi"
+            android:textSize="14sp"
+            android:backgroundTint="@color/text_secondary"
+            android:layout_marginBottom="24dp"
+            android:drawableStart="@drawable/ic_info"
+            android:drawablePadding="8dp"
+            android:gravity="start|center_vertical"
+            android:paddingStart="16dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+        <!-- Logout Button -->
+        <Button
+            android:id="@+id/btn_logout"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Logout"
+            android:textSize="16sp"
+            android:backgroundTint="@color/accent_color"
+            android:drawableStart="@drawable/ic_logout"
+            android:drawablePadding="8dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+    </LinearLayout>
+
+</ScrollView>
