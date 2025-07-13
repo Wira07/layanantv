@@ -16,6 +16,18 @@
         android:theme="@style/Theme.Layanantv"
         tools:targetApi="31">
         <activity
+            android:name=".ui.admin.CustomerDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.admin.OrderManagementActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.admin.CustomerManagementActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.admin.ChannelManagementActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.customer.CustomerDashboardActivity"
             android:exported="false" />
         <activity

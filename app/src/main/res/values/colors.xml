@@ -17,4 +17,88 @@
 
     <color name="divider_color">#E0E0E0</color>
     <color name="card_background">#FFFFFF</color>
+    <!-- Primary Colors -->
+    <color name="colorPrimary">#7986CB</color>
+    <color name="colorPrimaryDark">#5C6BC0</color>
+    <color name="colorPrimaryLight">#9FA8DA</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <!-- Background Colors -->
+    <color name="colorBackground">#121212</color>
+    <color name="colorBackgroundDark">#000000</color>
+    <color name="colorSurface">#1E1E1E</color>
+
+    <!-- Text Colors -->
+    <color name="colorTextPrimary">#FFFFFF</color>
+    <color name="colorTextSecondary">#B3FFFFFF</color>
+    <color name="colorTextHint">#80FFFFFF</color>
+    <color name="colorTextOnPrimary">#000000</color>
+    <color name="colorTextOnAccent">#FFFFFF</color>
+
+    <!-- Border and Divider Colors -->
+    <color name="colorBorder">#2C2C2C</color>
+    <color name="colorDivider">#404040</color>
+
+    <!-- Status Colors (same as light theme) -->
+    <color name="colorSuccess">#4CAF50</color>
+    <color name="colorWarning">#FF9800</color>
+    <color name="colorError">#F44336</color>
+    <color name="colorInfo">#2196F3</color>
+
+    <!-- Light variants -->
+    <color name="colorSuccessLight">#2E7D32</color>
+    <color name="colorWarningLight">#F57C00</color>
+    <color name="colorErrorLight">#C62828</color>
+    <color name="colorInfoLight">#1565C0</color>
+
+    <!-- Common Colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="gray">#9E9E9E</color>
+    <color name="gray_light">#2C2C2C</color>
+    <color name="gray_dark">#E0E0E0</color>
+
+    <!-- Additional UI Colors -->
+    <color name="colorCard">#1E1E1E</color>
+    <color name="colorCardElevated">#2C2C2C</color>
+    <color name="colorRipple">#1FFFFFFF</color>
+    <color name="colorShadow">#1A000000</color>
+
+    <!-- Button Colors -->
+    <color name="colorButtonPrimary">#7986CB</color>
+    <color name="colorButtonSecondary">#404040</color>
+    <color name="colorButtonDisabled">#2C2C2C</color>
+    <color name="colorButtonTextPrimary">#000000</color>
+    <color name="colorButtonTextSecondary">#FFFFFF</color>
+
+    <!-- Input Colors -->
+    <color name="colorInputBackground">#2C2C2C</color>
+    <color name="colorInputBorder">#404040</color>
+    <color name="colorInputBorderFocused">#7986CB</color>
+    <color name="colorInputText">#FFFFFF</color>
+    <color name="colorInputHint">#80FFFFFF</color>
+
+    <!-- Navigation Colors -->
+    <color name="colorNavigationBackground">#1E1E1E</color>
+    <color name="colorNavigationText">#B3FFFFFF</color>
+    <color name="colorNavigationTextActive">#7986CB</color>
+    <color name="colorNavigationIcon">#B3FFFFFF</color>
+    <color name="colorNavigationIconActive">#7986CB</color>
+
+    <!-- Overlay Colors -->
+    <color name="colorOverlayLight">#80FFFFFF</color>
+    <color name="colorOverlayDark">#80000000</color>
+    <color name="colorScrim">#66000000</color>
+
+    <color name="chip_background_selector">#E0E0E0</color>
+    <color name="chip_background_selected">#2196F3</color>
+    <color name="chip_background_normal">#F5F5F5</color>
+    <color name="chip_text_selected">#FFFFFF</color>
+    <color name="chip_text_normal">#757575</color>
+
+    <color name="status_pending">#FF9800</color>
+    <color name="status_confirmed">#2196F3</color>
+    <color name="status_completed">#4CAF50</color>
+    <color name="status_cancelled">#F44336</color>
 </resources>
