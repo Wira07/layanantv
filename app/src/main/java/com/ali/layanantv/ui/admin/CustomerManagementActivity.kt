@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.ali.layanantv.data.model.User
 import com.ali.layanantv.data.repository.AdminRepository
 import com.ali.layanantv.databinding.ActivityCustomerManagementBinding
-import com.ali.layanantv.ui.admin.CustomerDetailActivity
 import kotlinx.coroutines.launch
 
 class CustomerManagementActivity : AppCompatActivity() {

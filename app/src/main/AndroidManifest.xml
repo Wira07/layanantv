@@ -16,6 +16,24 @@
         android:theme="@style/Theme.Layanantv"
         tools:targetApi="31">
         <activity
+            android:name=".ui.customer.AboutActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.customer.HelpActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.customer.NotificationSettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.customer.ChangePasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.customer.EditProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.customer.ChannelBrowserActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.admin.CustomerDetailActivity"
             android:exported="false" />
         <activity

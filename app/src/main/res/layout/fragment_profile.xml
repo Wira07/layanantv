@@ -2,227 +2,330 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_color">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/background_light"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingHorizontal="20dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="32dp">
 
-        <!-- Profile Header -->
-        <LinearLayout
+        <!-- Profile Header Card -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/card_background"
-            android:orientation="vertical"
-            android:padding="20dp"
-            android:layout_marginBottom="16dp"
-            android:gravity="center">
-
-            <ImageView
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:src="@drawable/ic_profile_large"
-                android:layout_marginBottom="16dp" />
-
-            <TextView
-                android:id="@+id/tv_user_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Ali Rahman"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="@color/primary_color"
-                android:layout_marginBottom="4dp" />
-
-            <TextView
-                android:id="@+id/tv_user_email"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="ali.rahman@email.com"
-                android:textSize="14sp"
-                android:textColor="@color/text_secondary"
-                android:layout_marginBottom="8dp" />
-
-            <TextView
-                android:id="@+id/tv_user_points"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="2500 Point"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/accent_color"
-                android:drawableStart="@drawable/ic_star"
-                android:drawablePadding="6dp" />
-
-        </LinearLayout>
-
-        <!-- Contact Information -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/card_background"
-            android:orientation="vertical"
-            android:padding="16dp"
-            android:layout_marginBottom="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Informasi Kontak"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/primary_color"
-                android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="32dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="8dp"
+            android:background="@android:color/white">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:orientation="vertical"
+                android:padding="32dp"
+                android:gravity="center">
 
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_phone"
-                    android:layout_marginEnd="12dp"
-                    android:layout_gravity="center_vertical" />
+                <!-- Profile Image with Circular Background -->
+                <FrameLayout
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_marginBottom="24dp"
+                    android:background="@drawable/circle_gradient_background">
 
+                    <ImageView
+                        android:layout_width="60dp"
+                        android:layout_height="60dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_profile_large"
+                        app:tint="@android:color/white" />
+
+                </FrameLayout>
+
+                <!-- User Name -->
                 <TextView
-                    android:id="@+id/tv_user_phone"
+                    android:id="@+id/tv_user_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="+62 812-3456-7890"
-                    android:textSize="14sp"
-                    android:textColor="@color/text_primary" />
+                    android:text="Ali Rahman"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_dark"
+                    android:layout_marginBottom="8dp"/>
 
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_email"
-                    android:layout_marginEnd="12dp"
-                    android:layout_gravity="center_vertical" />
-
+                <!-- User Email -->
                 <TextView
+                    android:id="@+id/tv_user_email"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="ali.rahman@email.com"
-                    android:textSize="14sp"
-                    android:textColor="@color/text_primary" />
+                    android:textSize="15sp"
+                    android:textColor="@color/text_medium"
+                    android:layout_marginBottom="20dp"/>
+
+                <!-- Points with Modern Badge -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/points_badge_background"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_star_filled"
+                        app:tint="@color/accent_gold"
+                        android:layout_marginEnd="6dp" />
+
+                    <TextView
+                        android:id="@+id/tv_user_points"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2,500 Points"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/accent_gold"/>
+
+                </LinearLayout>
 
             </LinearLayout>
 
-        </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
-        <!-- Profile Actions -->
+        <!-- Contact Information Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            android:background="@android:color/white">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Informasi Kontak"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_dark"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- Phone Number -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp"
+                    android:gravity="center_vertical">
+
+                    <FrameLayout
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/icon_circle_background"
+                        android:layout_marginEnd="12dp">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_phone"
+                            app:tint="@color/primary_blue" />
+
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/tv_user_phone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="+62 812-3456-7890"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_dark"/>
+
+                </LinearLayout>
+
+                <!-- Email -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <FrameLayout
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/icon_circle_background"
+                        android:layout_marginEnd="12dp">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_email"
+                            app:tint="@color/primary_blue" />
+
+                    </FrameLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ali.rahman@email.com"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_dark"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Profile Settings Section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Pengaturan Profil"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:layout_marginBottom="12dp" />
+            android:textColor="@color/text_dark"
+            android:layout_marginBottom="16dp"/>
 
-        <Button
+        <!-- Edit Profile Button -->
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_edit_profile"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="56dp"
             android:text="Edit Profil"
             android:textSize="14sp"
-            android:backgroundTint="@color/primary_color"
-            android:layout_marginBottom="8dp"
+            android:textColor="@color/text_dark"
+            android:backgroundTint="@android:color/transparent"
+            android:strokeColor="@color/stroke_light"
+            android:strokeWidth="10"
+            android:layout_marginBottom="12dp"
             android:drawableStart="@drawable/ic_edit"
-            android:drawablePadding="8dp"
+            android:drawablePadding="12dp"
             android:gravity="start|center_vertical"
-            android:paddingStart="16dp"
+            android:paddingStart="20dp"
+            app:cornerRadius="12dp"
+            app:rippleColor="@color/ripple_light"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
-        <Button
+        <!-- Change Password Button -->
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_change_password"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="56dp"
             android:text="Ubah Password"
             android:textSize="14sp"
-            android:backgroundTint="@color/primary_color"
-            android:layout_marginBottom="8dp"
+            android:textColor="@color/text_dark"
+            android:backgroundTint="@android:color/transparent"
+            android:strokeColor="@color/stroke_light"
+            android:strokeWidth="1"
+            android:layout_marginBottom="12dp"
             android:drawableStart="@drawable/ic_lock"
-            android:drawablePadding="8dp"
+            android:drawablePadding="12dp"
             android:gravity="start|center_vertical"
-            android:paddingStart="16dp"
+            android:paddingStart="20dp"
+            app:cornerRadius="12dp"
+            app:rippleColor="@color/ripple_light"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
-        <Button
+        <!-- Notification Settings Button -->
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_notification_settings"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="56dp"
             android:text="Pengaturan Notifikasi"
             android:textSize="14sp"
-            android:backgroundTint="@color/primary_color"
-            android:layout_marginBottom="16dp"
+            android:textColor="@color/text_dark"
+            android:backgroundTint="@android:color/transparent"
+            android:strokeColor="@color/stroke_light"
+            android:strokeWidth="1"
+            android:layout_marginBottom="32dp"
             android:drawableStart="@drawable/ic_notification"
-            android:drawablePadding="8dp"
+            android:drawablePadding="12dp"
             android:gravity="start|center_vertical"
-            android:paddingStart="16dp"
+            android:paddingStart="20dp"
+            app:cornerRadius="12dp"
+            app:rippleColor="@color/ripple_light"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
-        <!-- App Actions -->
+        <!-- App Settings Section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Aplikasi"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/text_primary"
-            android:layout_marginBottom="12dp" />
+            android:textColor="@color/text_dark"
+            android:layout_marginBottom="16dp"/>
 
-        <Button
+        <!-- Help Button -->
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_help"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="56dp"
             android:text="Bantuan dan FAQ"
             android:textSize="14sp"
-            android:backgroundTint="@color/text_secondary"
-            android:layout_marginBottom="8dp"
+            android:textColor="@color/text_medium"
+            android:backgroundTint="@android:color/transparent"
+            android:strokeColor="@color/stroke_light"
+            android:strokeWidth="1"
+            android:layout_marginBottom="12dp"
             android:drawableStart="@drawable/ic_help"
-            android:drawablePadding="8dp"
+            android:drawablePadding="12dp"
             android:gravity="start|center_vertical"
-            android:paddingStart="16dp"
+            android:paddingStart="20dp"
+            app:cornerRadius="12dp"
+            app:rippleColor="@color/ripple_light"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
-        <Button
+        <!-- About Button -->
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_about"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="56dp"
             android:text="Tentang Aplikasi"
             android:textSize="14sp"
-            android:backgroundTint="@color/text_secondary"
-            android:layout_marginBottom="24dp"
+            android:textColor="@color/text_medium"
+            android:backgroundTint="@android:color/transparent"
+            android:strokeColor="@color/stroke_light"
+            android:strokeWidth="1"
+            android:layout_marginBottom="32dp"
             android:drawableStart="@drawable/ic_info"
-            android:drawablePadding="8dp"
+            android:drawablePadding="12dp"
             android:gravity="start|center_vertical"
-            android:paddingStart="16dp"
+            android:paddingStart="20dp"
+            app:cornerRadius="12dp"
+            app:rippleColor="@color/ripple_light"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
         <!-- Logout Button -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_logout"
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:text="Logout"
             android:textSize="16sp"
-            android:backgroundTint="@color/accent_color"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/error_red"
             android:drawableStart="@drawable/ic_logout"
-            android:drawablePadding="8dp"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            android:drawablePadding="12dp"
+            android:gravity="center"
+            app:cornerRadius="12dp"
+            app:rippleColor="@color/ripple_red"
+            style="@style/Widget.MaterialComponents.Button" />
 
     </LinearLayout>
 

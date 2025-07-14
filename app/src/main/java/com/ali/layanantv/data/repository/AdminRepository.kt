@@ -28,10 +28,16 @@ class AdminRepository {
 
         // Calculate total revenue from completed orders
         var totalRevenue = 0.0
+        var activeSubscriptions = 0
+        var pendingOrders = 0
+
         for (doc in ordersSnapshot.documents) {
             val order = doc.toObject(Order::class.java)
             if (order?.status == "completed") {
                 totalRevenue += order.totalAmount
+                activeSubscriptions++ // Count completed orders as active subscriptions
+            } else if (order?.status == "pending") {
+                pendingOrders++
             }
         }
 
@@ -39,7 +45,9 @@ class AdminRepository {
             totalUsers = totalUsers,
             activeChannels = activeChannels,
             totalOrders = totalOrders,
-            totalRevenue = totalRevenue
+            totalRevenue = totalRevenue,
+            activeSubscriptions = activeSubscriptions,
+            pendingOrders = pendingOrders
         )
     }
 
