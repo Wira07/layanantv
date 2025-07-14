@@ -9,15 +9,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="12dp">
 
         <!-- Header Welcome Section with Gradient -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="28dp"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="12dp"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="8dp"
             app:cardUseCompatPadding="true">
 
             <LinearLayout
@@ -25,14 +25,14 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/gradient_header_bg"
                 android:orientation="vertical"
-                android:padding="28dp">
+                android:padding="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginBottom="16dp">
+                    android:layout_marginBottom="12dp">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -46,9 +46,9 @@
                             android:layout_height="wrap_content"
                             android:text="Selamat datang kembali!"
                             android:textColor="@android:color/white"
-                            android:textSize="26sp"
+                            android:textSize="24sp"
                             android:textStyle="bold"
-                            android:layout_marginBottom="4dp" />
+                            android:layout_marginBottom="2dp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -61,19 +61,19 @@
                     </LinearLayout>
 
                     <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
                         android:src="@drawable/ic_tv_premium"
                         android:scaleType="centerCrop"
                         android:background="@drawable/circular_white_bg"
-                        android:padding="8dp" />
+                        android:padding="6dp" />
 
                 </LinearLayout>
 
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="16dp"
+                    app:cardCornerRadius="12dp"
                     app:cardElevation="4dp"
                     app:cardUseCompatPadding="false">
 
@@ -83,7 +83,7 @@
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
                         android:background="@drawable/points_card_bg"
-                        android:padding="20dp">
+                        android:padding="12dp">
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -98,7 +98,7 @@
                                 android:textColor="@color/primary_color"
                                 android:textSize="12sp"
                                 android:textStyle="bold"
-                                android:layout_marginBottom="4dp" />
+                                android:layout_marginBottom="2dp" />
 
                             <TextView
                                 android:id="@+id/tv_user_points"
@@ -106,7 +106,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="2,500"
                                 android:textColor="@color/primary_color"
-                                android:textSize="24sp"
+                                android:textSize="22sp"
                                 android:textStyle="bold"/>
 
                         </LinearLayout>
@@ -118,10 +118,10 @@
                             android:gravity="center">
 
                             <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
                                 android:src="@drawable/ic_star_gold"
-                                android:layout_marginBottom="4dp" />
+                                android:layout_marginBottom="2dp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -147,14 +147,14 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="20dp">
+            android:layout_marginBottom="12dp">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Layanan Utama"
-                android:textSize="22sp"
+                android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"/>
 
@@ -167,7 +167,7 @@
                 android:background="?android:attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true"
-                android:padding="8dp" />
+                android:padding="6dp" />
 
         </LinearLayout>
 
@@ -176,15 +176,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="16dp">
 
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
-                android:layout_height="140dp"
+                android:layout_height="120dp"
                 android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="8dp"
+                android:layout_marginEnd="6dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
                 app:cardUseCompatPadding="true">
 
                 <LinearLayout
@@ -196,13 +196,13 @@
                     android:background="@drawable/service_card_bg_1"
                     android:clickable="true"
                     android:focusable="true"
-                    android:padding="20dp">
+                    android:padding="12dp">
 
                     <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
                         android:src="@drawable/ic_tv_modern"
-                        android:layout_marginBottom="12dp"
+                        android:layout_marginBottom="8dp"
                         android:scaleType="centerCrop" />
 
                     <TextView
@@ -211,9 +211,9 @@
                         android:text="Jelajahi Channel"
                         android:textAlignment="center"
                         android:textColor="@android:color/white"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:textStyle="bold"
-                        android:lineSpacingExtra="2dp" />
+                        android:lineSpacingExtra="1dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -221,7 +221,7 @@
                         android:text="1000+ Channel"
                         android:textAlignment="center"
                         android:textColor="@android:color/white"
-                        android:textSize="12sp"
+                        android:textSize="11sp"
                         android:alpha="0.8"/>
 
                 </LinearLayout>
@@ -230,11 +230,11 @@
 
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
-                android:layout_height="140dp"
+                android:layout_height="120dp"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="8dp"
+                android:layout_marginStart="6dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
                 app:cardUseCompatPadding="true">
 
                 <LinearLayout
@@ -246,13 +246,13 @@
                     android:background="@drawable/service_card_bg_2"
                     android:clickable="true"
                     android:focusable="true"
-                    android:padding="20dp">
+                    android:padding="12dp">
 
                     <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
                         android:src="@drawable/ic_subscription_modern"
-                        android:layout_marginBottom="12dp"
+                        android:layout_marginBottom="8dp"
                         android:scaleType="centerCrop" />
 
                     <TextView
@@ -261,9 +261,9 @@
                         android:text="Langganan Saya"
                         android:textAlignment="center"
                         android:textColor="@android:color/white"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:textStyle="bold"
-                        android:lineSpacingExtra="2dp" />
+                        android:lineSpacingExtra="1dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -271,7 +271,7 @@
                         android:text="Kelola Paket"
                         android:textAlignment="center"
                         android:textColor="@android:color/white"
-                        android:textSize="12sp"
+                        android:textSize="11sp"
                         android:alpha="0.8"/>
 
                 </LinearLayout>
@@ -285,15 +285,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="28dp">
+            android:layout_marginBottom="16dp">
 
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
-                android:layout_height="140dp"
+                android:layout_height="120dp"
                 android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="8dp"
+                android:layout_marginEnd="6dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
                 app:cardUseCompatPadding="true">
 
                 <LinearLayout
@@ -305,13 +305,13 @@
                     android:background="@drawable/service_card_bg_3"
                     android:clickable="true"
                     android:focusable="true"
-                    android:padding="20dp">
+                    android:padding="12dp">
 
                     <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
                         android:src="@drawable/ic_history_modern"
-                        android:layout_marginBottom="12dp"
+                        android:layout_marginBottom="8dp"
                         android:scaleType="centerCrop" />
 
                     <TextView
@@ -320,9 +320,9 @@
                         android:text="Riwayat Pembelian"
                         android:textAlignment="center"
                         android:textColor="@android:color/white"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:textStyle="bold"
-                        android:lineSpacingExtra="2dp" />
+                        android:lineSpacingExtra="1dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -330,7 +330,7 @@
                         android:text="Lihat Transaksi"
                         android:textAlignment="center"
                         android:textColor="@android:color/white"
-                        android:textSize="12sp"
+                        android:textSize="11sp"
                         android:alpha="0.8"/>
 
                 </LinearLayout>
@@ -339,11 +339,11 @@
 
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
-                android:layout_height="140dp"
+                android:layout_height="120dp"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="8dp"
+                android:layout_marginStart="6dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp"
                 app:cardUseCompatPadding="true">
 
                 <LinearLayout
@@ -355,13 +355,13 @@
                     android:background="@drawable/service_card_bg_4"
                     android:clickable="true"
                     android:focusable="true"
-                    android:padding="20dp">
+                    android:padding="12dp">
 
                     <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
                         android:src="@drawable/ic_diamond_modern"
-                        android:layout_marginBottom="12dp"
+                        android:layout_marginBottom="8dp"
                         android:scaleType="centerCrop" />
 
                     <TextView
@@ -370,9 +370,9 @@
                         android:text="Tukar Point"
                         android:textAlignment="center"
                         android:textColor="@android:color/white"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:textStyle="bold"
-                        android:lineSpacingExtra="2dp" />
+                        android:lineSpacingExtra="1dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -380,7 +380,7 @@
                         android:text="Hadiah Menarik"
                         android:textAlignment="center"
                         android:textColor="@android:color/white"
-                        android:textSize="12sp"
+                        android:textSize="11sp"
                         android:alpha="0.8"/>
 
                 </LinearLayout>
@@ -393,9 +393,9 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="12dp"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="8dp"
             app:cardUseCompatPadding="true">
 
             <LinearLayout
@@ -403,14 +403,14 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/promo_gradient_bg"
                 android:orientation="vertical"
-                android:padding="24dp">
+                android:padding="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginBottom="16dp">
+                    android:layout_marginBottom="12dp">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -424,14 +424,14 @@
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
                             android:background="@drawable/badge_special_bg"
-                            android:padding="8dp"
-                            android:layout_marginBottom="8dp">
+                            android:padding="6dp"
+                            android:layout_marginBottom="6dp">
 
                             <ImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
+                                android:layout_width="14dp"
+                                android:layout_height="14dp"
                                 android:src="@drawable/ic_fire"
-                                android:layout_marginEnd="6dp" />
+                                android:layout_marginEnd="4dp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -447,24 +447,24 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Dapatkan 1000 Point Gratis!"
-                            android:textSize="20sp"
+                            android:textSize="18sp"
                             android:textStyle="bold"
                             android:textColor="@android:color/white"
-                            android:layout_marginBottom="4dp" />
+                            android:layout_marginBottom="2dp" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Beli 3 kali berturut-turut"
-                            android:textSize="14sp"
+                            android:textSize="13sp"
                             android:textColor="@android:color/white"
                             android:alpha="0.9"/>
 
                     </LinearLayout>
 
                     <ImageView
-                        android:layout_width="80dp"
-                        android:layout_height="80dp"
+                        android:layout_width="60dp"
+                        android:layout_height="60dp"
                         android:src="@drawable/ic_gift_box"
                         android:scaleType="centerCrop" />
 
@@ -486,7 +486,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Berlaku hingga 31 Desember 2024"
-                            android:textSize="12sp"
+                            android:textSize="11sp"
                             android:textColor="@android:color/white"
                             android:alpha="0.7"/>
 
@@ -495,7 +495,7 @@
                     <androidx.cardview.widget.CardView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:cardCornerRadius="20dp"
+                        app:cardCornerRadius="16dp"
                         app:cardElevation="4dp"
                         app:cardUseCompatPadding="false">
 
@@ -505,13 +505,13 @@
                             android:orientation="horizontal"
                             android:gravity="center"
                             android:background="@android:color/white"
-                            android:padding="12dp">
+                            android:padding="10dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Ambil Sekarang"
-                                android:textSize="14sp"
+                                android:textSize="13sp"
                                 android:textStyle="bold"
                                 android:textColor="@color/primary_color"/>
 
@@ -530,7 +530,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="16dp">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -539,16 +539,16 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:background="@drawable/quick_action_bg"
-                android:padding="16dp"
-                android:layout_marginEnd="8dp"
+                android:padding="12dp"
+                android:layout_marginEnd="6dp"
                 android:clickable="true"
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:src="@drawable/ic_customer_service"
-                    android:layout_marginBottom="8dp" />
+                    android:layout_marginBottom="6dp" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -567,17 +567,17 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:background="@drawable/quick_action_bg"
-                android:padding="16dp"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
+                android:padding="12dp"
+                android:layout_marginStart="3dp"
+                android:layout_marginEnd="3dp"
                 android:clickable="true"
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:src="@drawable/ic_notification"
-                    android:layout_marginBottom="8dp" />
+                    android:layout_marginBottom="6dp" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -596,16 +596,16 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:background="@drawable/quick_action_bg"
-                android:padding="16dp"
-                android:layout_marginStart="8dp"
+                android:padding="12dp"
+                android:layout_marginStart="6dp"
                 android:clickable="true"
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:src="@drawable/ic_settings"
-                    android:layout_marginBottom="8dp" />
+                    android:layout_marginBottom="6dp" />
 
                 <TextView
                     android:layout_width="wrap_content"

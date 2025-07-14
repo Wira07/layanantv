@@ -44,7 +44,7 @@ class HomeFragment : Fragment() {
             // Setup click listeners for main features
             binding.btnBrowseChannels.setOnClickListener {
                 // TODO: Create ChannelBrowserActivity or navigate to channels
-                // startActivity(Intent(requireContext(), ChannelBrowserActivity::class.java))
+                 startActivity(Intent(requireContext(), ChannelBrowserActivity::class.java))
             }
 
             binding.btnMySubscriptions.setOnClickListener {

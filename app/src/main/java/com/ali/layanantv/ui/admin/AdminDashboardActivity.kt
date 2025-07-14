@@ -8,6 +8,7 @@ import com.ali.layanantv.data.repository.AuthRepository
 import com.ali.layanantv.data.repository.AdminRepository
 import com.ali.layanantv.databinding.ActivityAdminDashboardBinding
 import com.ali.layanantv.ui.auth.LoginActivity
+import com.ali.layanantv.R
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -55,6 +56,26 @@ class AdminDashboardActivity : AppCompatActivity() {
         binding.btnReports.setOnClickListener {
             startActivity(Intent(this, OrderManagementActivity::class.java))
         }
+
+        binding.btnChat.isEnabled = true
+        binding.btnChat.alpha = 1.0f
+        binding.btnChat.setOnClickListener {
+            // Navigate to ChatFragmentAdmin using Fragment Transaction
+            navigateToChatFragment()
+        }
+    }
+
+    private fun navigateToChatFragment() {
+        val chatFragment = ChatFragmentAdmin()
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, chatFragment)
+            .addToBackStack("chat_fragment")
+            .commit()
+
+        // Hide the main dashboard content and show fragment container
+        binding.mainDashboardContent.visibility = android.view.View.GONE
+        findViewById<android.widget.FrameLayout>(R.id.fragment_container).visibility = android.view.View.VISIBLE
     }
 
     private fun loadDashboardData() {
@@ -78,6 +99,16 @@ class AdminDashboardActivity : AppCompatActivity() {
                 binding.tvTotalOrders.text = "0"
                 binding.tvActiveChannels.text = "0"
             }
+        }
+    }
+
+    override fun onBackPressed() {
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStack()
+            binding.mainDashboardContent.visibility = android.view.View.VISIBLE
+            findViewById<android.widget.FrameLayout>(R.id.fragment_container).visibility = android.view.View.GONE
+        } else {
+            super.onBackPressed()
         }
     }
 

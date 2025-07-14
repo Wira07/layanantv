@@ -128,4 +128,26 @@
     <color name="stroke_light">#E5E7EB</color>
     <color name="ripple_light">#F3F4F6</color>
     <color name="ripple_red">#FEE2E2</color>
+
+    <!-- Primary Colors -->
+    <color name="primary">#2196F3</color>
+
+    <!-- Gray Colors -->
+    <color name="gray_300">#E0E0E0</color>
+    <color name="gray_400">#BDBDBD</color>
+    <color name="gray_500">#9E9E9E</color>
+    <color name="gray_600">#757575</color>
+
+    <!-- Blue Colors -->
+    <color name="blue_100">#E3F2FD</color>
+    <color name="blue_200">#BBDEFB</color>
+    <color name="blue_600">#1E88E5</color>
+
+    <!-- Red Colors -->
+    <color name="red_100">#FFEBEE</color>
+    <color name="red_200">#FFCDD2</color>
+    <color name="red_600">#E53935</color>
+
+    <!-- Green Colors -->
+    <color name="green_600">#43A047</color>
 </resources>

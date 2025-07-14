@@ -1,5 +1,6 @@
 package com.ali.layanantv.data.repository
 
+import android.util.Log
 import com.ali.layanantv.data.model.Channel
 import com.ali.layanantv.data.model.CustomerDashboardStats
 import com.ali.layanantv.data.model.Order
@@ -14,19 +15,28 @@ class CustomerRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
+    companion object {
+        private const val TAG = "CustomerRepository"
+    }
+
     // Get all active channels
     suspend fun getActiveChannels(): List<Channel> {
         return try {
+            Log.d(TAG, "Getting active channels")
             val snapshot = firestore.collection("channels")
                 .whereEqualTo("isActive", true)
                 .orderBy("name")
                 .get()
                 .await()
 
-            snapshot.documents.mapNotNull { doc ->
+            val channels = snapshot.documents.mapNotNull { doc ->
                 doc.toObject(Channel::class.java)?.copy(id = doc.id)
             }
+
+            Log.d(TAG, "Found ${channels.size} active channels")
+            channels
         } catch (e: Exception) {
+            Log.e(TAG, "Error getting active channels: ${e.message}", e)
             emptyList()
         }
     }
@@ -34,6 +44,7 @@ class CustomerRepository {
     // Get channels by category
     suspend fun getChannelsByCategory(category: String): List<Channel> {
         return try {
+            Log.d(TAG, "Getting channels by category: $category")
             val snapshot = firestore.collection("channels")
                 .whereEqualTo("isActive", true)
                 .whereEqualTo("category", category)
@@ -41,10 +52,14 @@ class CustomerRepository {
                 .get()
                 .await()
 
-            snapshot.documents.mapNotNull { doc ->
+            val channels = snapshot.documents.mapNotNull { doc ->
                 doc.toObject(Channel::class.java)?.copy(id = doc.id)
             }
+
+            Log.d(TAG, "Found ${channels.size} channels in category: $category")
+            channels
         } catch (e: Exception) {
+            Log.e(TAG, "Error getting channels by category: ${e.message}", e)
             emptyList()
         }
     }
@@ -52,72 +67,121 @@ class CustomerRepository {
     // Get channel by ID
     suspend fun getChannelById(channelId: String): Channel? {
         return try {
+            Log.d(TAG, "Getting channel by ID: $channelId")
             val snapshot = firestore.collection("channels")
                 .document(channelId)
                 .get()
                 .await()
-            snapshot.toObject(Channel::class.java)?.copy(id = snapshot.id)
+
+            val channel = snapshot.toObject(Channel::class.java)?.copy(id = snapshot.id)
+            Log.d(TAG, "Found channel: ${channel?.name}")
+            channel
         } catch (e: Exception) {
+            Log.e(TAG, "Error getting channel by ID: ${e.message}", e)
             null
         }
     }
 
     // Create new order
     suspend fun createOrder(order: Order): String {
+        Log.d(TAG, "Creating order for channel: ${order.channelName}")
         val docRef = firestore.collection("orders").add(order).await()
+        Log.d(TAG, "Order created with ID: ${docRef.id}")
         return docRef.id
     }
 
-    // FIXED: Get user's orders dengan error handling yang lebih baik
+    // Create subscription record when order is completed
+    suspend fun createSubscription(order: Order) {
+        try {
+            Log.d(TAG, "Creating subscription for order: ${order.id}")
+            val subscription = mapOf(
+                "userId" to order.userId,
+                "channelId" to order.channelId,
+                "channelName" to order.channelName,
+                "subscriptionType" to order.subscriptionType,
+                "totalAmount" to order.totalAmount,
+                "orderId" to order.id,
+                "isActive" to true,
+                "createdAt" to Timestamp.now(),
+                "updatedAt" to Timestamp.now()
+            )
+
+            firestore.collection("subscriptions").add(subscription).await()
+            Log.d(TAG, "Subscription created successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating subscription: ${e.message}", e)
+            e.printStackTrace()
+        }
+    }
+
+    // Get user's orders dengan error handling yang lebih baik
     suspend fun getUserOrders(): List<Order> {
         val currentUser = auth.currentUser ?: return emptyList()
 
         return try {
+            Log.d(TAG, "Getting user orders for: ${currentUser.uid}")
             val snapshot = firestore.collection("orders")
                 .whereEqualTo("userId", currentUser.uid)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
 
-            snapshot.documents.mapNotNull { doc ->
+            val orders = snapshot.documents.mapNotNull { doc ->
                 doc.toObject(Order::class.java)?.copy(id = doc.id)
             }
+
+            Log.d(TAG, "Found ${orders.size} orders for user")
+            orders
         } catch (e: Exception) {
-            // Log error untuk debugging
+            Log.e(TAG, "Error getting user orders: ${e.message}", e)
             e.printStackTrace()
             emptyList()
         }
     }
 
-    // FIXED: Get user's active subscriptions - menggunakan collection subscriptions yang sebenarnya
+    // Get user's active subscriptions dengan data channel yang lengkap
     suspend fun getUserSubscriptions(): List<Order> {
         val currentUser = auth.currentUser ?: return emptyList()
 
         return try {
+            Log.d(TAG, "Getting user subscriptions for: ${currentUser.uid}")
             // Pertama, coba ambil dari collection subscriptions
             val subscriptionsSnapshot = firestore.collection("subscriptions")
                 .whereEqualTo("userId", currentUser.uid)
                 .whereEqualTo("isActive", true)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
 
-            // Jika ada subscriptions, konversi ke Order format untuk kompatibilitas
+            // Jika ada subscriptions, konversi ke Order format dengan data channel lengkap
             if (subscriptionsSnapshot.documents.isNotEmpty()) {
-                subscriptionsSnapshot.documents.mapNotNull { doc ->
+                val subscriptions = subscriptionsSnapshot.documents.mapNotNull { doc ->
                     val data = doc.data
                     if (data != null) {
+                        val channelId = data["channelId"] as? String ?: ""
+                        val channelName = data["channelName"] as? String ?: ""
+
+                        // Ambil data channel yang lebih lengkap jika diperlukan
+                        val channel = if (channelId.isNotEmpty()) {
+                            getChannelById(channelId)
+                        } else null
+
                         Order(
                             id = doc.id,
                             userId = data["userId"] as? String ?: "",
-                            channelId = data["channelId"] as? String ?: "",
-                            channelName = data["channelName"] as? String ?: "",
+                            channelId = channelId,
+                            channelName = channel?.name ?: channelName,
                             subscriptionType = data["subscriptionType"] as? String ?: "",
+                            totalAmount = (data["totalAmount"] as? Number)?.toDouble() ?: 0.0,
                             status = "completed",
                             createdAt = data["createdAt"] as? Timestamp ?: Timestamp.now(),
                             updatedAt = data["updatedAt"] as? Timestamp ?: Timestamp.now()
                         )
                     } else null
                 }
+
+                Log.d(TAG, "Found ${subscriptions.size} active subscriptions")
+                subscriptions
             } else {
                 // Fallback ke orders yang completed
                 val ordersSnapshot = firestore.collection("orders")
@@ -127,12 +191,20 @@ class CustomerRepository {
                     .get()
                     .await()
 
-                ordersSnapshot.documents.mapNotNull { doc ->
-                    doc.toObject(Order::class.java)?.copy(id = doc.id)
+                val orders = ordersSnapshot.documents.mapNotNull { doc ->
+                    val order = doc.toObject(Order::class.java)?.copy(id = doc.id)
+                    order?.let {
+                        // Pastikan data channel terbaru
+                        val channel = getChannelById(it.channelId)
+                        it.copy(channelName = channel?.name ?: it.channelName)
+                    }
                 }
+
+                Log.d(TAG, "Found ${orders.size} completed orders as fallback")
+                orders
             }
         } catch (e: Exception) {
-            // Log error untuk debugging
+            Log.e(TAG, "Error getting user subscriptions: ${e.message}", e)
             e.printStackTrace()
             emptyList()
         }
@@ -143,6 +215,7 @@ class CustomerRepository {
         val currentUser = auth.currentUser ?: return null
 
         return try {
+            Log.d(TAG, "Getting current user info")
             val snapshot = firestore.collection("users")
                 .document(currentUser.uid)
                 .get()
@@ -150,6 +223,7 @@ class CustomerRepository {
 
             snapshot.toObject(User::class.java)?.copy(uid = snapshot.id)
         } catch (e: Exception) {
+            Log.e(TAG, "Error getting current user: ${e.message}", e)
             null
         }
     }
@@ -159,54 +233,80 @@ class CustomerRepository {
         val currentUser = auth.currentUser ?: return
 
         try {
+            Log.d(TAG, "Updating user profile")
             firestore.collection("users")
                 .document(currentUser.uid)
                 .set(user)
                 .await()
+            Log.d(TAG, "User profile updated successfully")
         } catch (e: Exception) {
+            Log.e(TAG, "Error updating user profile: ${e.message}", e)
             e.printStackTrace()
         }
     }
 
-    // FIXED: Get user points dengan error handling yang lebih baik
+    // Get user points dengan error handling yang lebih baik
     suspend fun getUserPoints(): Int {
         val currentUser = auth.currentUser ?: return 0
 
         return try {
+            Log.d(TAG, "Getting user points")
             val snapshot = firestore.collection("users")
                 .document(currentUser.uid)
                 .get()
                 .await()
 
-            snapshot.getLong("points")?.toInt() ?: 2500
+            val points = snapshot.getLong("points")?.toInt() ?: 2500
+            Log.d(TAG, "User points: $points")
+            points
         } catch (e: Exception) {
+            Log.e(TAG, "Error getting user points: ${e.message}", e)
             2500 // Default points jika error
         }
     }
 
-    // FIXED: Get available channels dengan error handling yang lebih baik
+    // PERBAIKAN: Method ini sekarang sama dengan getActiveChannels() untuk konsistensi
     suspend fun getAvailableChannels(): List<Channel> {
         return try {
-            val channelsSnapshot = firestore.collection("channels")
+            Log.d(TAG, "Getting available channels for channel browser")
+            val snapshot = firestore.collection("channels")
                 .whereEqualTo("isActive", true)
                 .orderBy("name")
                 .get()
                 .await()
 
-            channelsSnapshot.documents.mapNotNull { doc ->
-                doc.toObject(Channel::class.java)?.copy(id = doc.id)
+            val channels = snapshot.documents.mapNotNull { doc ->
+                try {
+                    val channel = doc.toObject(Channel::class.java)?.copy(id = doc.id)
+                    Log.d(TAG, "Processing channel: ${channel?.name} (ID: ${channel?.id})")
+                    channel
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error processing channel document: ${doc.id}", e)
+                    null
+                }
             }
+
+            Log.d(TAG, "Successfully retrieved ${channels.size} available channels")
+
+            // Log setiap channel untuk debugging
+            channels.forEachIndexed { index, channel ->
+                Log.d(TAG, "Channel $index: ${channel.name} (ID: ${channel.id}, Active: ${channel.isActive}, Price: ${channel.price})")
+            }
+
+            channels
         } catch (e: Exception) {
+            Log.e(TAG, "Error getting available channels: ${e.message}", e)
             e.printStackTrace()
             emptyList()
         }
     }
 
-    // FIXED: Get dashboard stats dengan error handling yang lebih baik
+    // Get dashboard stats dengan error handling yang lebih baik
     suspend fun getCustomerDashboardStats(): CustomerDashboardStats {
         val currentUser = auth.currentUser ?: return CustomerDashboardStats()
 
         return try {
+            Log.d(TAG, "Getting customer dashboard stats")
             val ordersSnapshot = firestore.collection("orders")
                 .whereEqualTo("userId", currentUser.uid)
                 .get()
@@ -220,28 +320,32 @@ class CustomerRepository {
                 doc.toObject(Order::class.java)?.status == "pending"
             }
 
-            CustomerDashboardStats(
+            val stats = CustomerDashboardStats(
                 totalOrders = totalOrders,
                 activeSubscriptions = activeSubscriptions,
                 pendingOrders = pendingOrders
             )
+
+            Log.d(TAG, "Dashboard stats: $stats")
+            stats
         } catch (e: Exception) {
+            Log.e(TAG, "Error getting dashboard stats: ${e.message}", e)
             e.printStackTrace()
             CustomerDashboardStats()
         }
     }
 
-    // TAMBAHAN: Method untuk mendapatkan order history dengan pagination
+    // Method untuk mendapatkan order history dengan pagination
     suspend fun getOrderHistory(limit: Int = 10, lastOrderId: String? = null): List<Order> {
         val currentUser = auth.currentUser ?: return emptyList()
 
         return try {
+            Log.d(TAG, "Getting order history with limit: $limit")
             var query = firestore.collection("orders")
                 .whereEqualTo("userId", currentUser.uid)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .limit(limit.toLong())
 
-            // Jika ada lastOrderId, mulai dari setelah dokumen tersebut
             if (lastOrderId != null) {
                 val lastDoc = firestore.collection("orders")
                     .document(lastOrderId)
@@ -252,52 +356,76 @@ class CustomerRepository {
 
             val snapshot = query.get().await()
 
-            snapshot.documents.mapNotNull { doc ->
-                doc.toObject(Order::class.java)?.copy(id = doc.id)
+            val orders = snapshot.documents.mapNotNull { doc ->
+                val order = doc.toObject(Order::class.java)?.copy(id = doc.id)
+                order?.let {
+                    // Pastikan data channel terbaru
+                    val channel = getChannelById(it.channelId)
+                    it.copy(channelName = channel?.name ?: it.channelName)
+                }
             }
+
+            Log.d(TAG, "Found ${orders.size} orders in history")
+            orders
         } catch (e: Exception) {
+            Log.e(TAG, "Error getting order history: ${e.message}", e)
             e.printStackTrace()
             emptyList()
         }
     }
 
-    // TAMBAHAN: Method untuk mendapatkan subscription history
+    // Method untuk mendapatkan subscription history
     suspend fun getSubscriptionHistory(): List<Order> {
         val currentUser = auth.currentUser ?: return emptyList()
 
         return try {
+            Log.d(TAG, "Getting subscription history")
             val snapshot = firestore.collection("subscriptions")
                 .whereEqualTo("userId", currentUser.uid)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
 
-            snapshot.documents.mapNotNull { doc ->
+            val subscriptions = snapshot.documents.mapNotNull { doc ->
                 val data = doc.data
                 if (data != null) {
+                    val channelId = data["channelId"] as? String ?: ""
+                    val channelName = data["channelName"] as? String ?: ""
+
+                    // Ambil data channel yang lebih lengkap
+                    val channel = if (channelId.isNotEmpty()) {
+                        getChannelById(channelId)
+                    } else null
+
                     Order(
                         id = doc.id,
                         userId = data["userId"] as? String ?: "",
-                        channelId = data["channelId"] as? String ?: "",
-                        channelName = data["channelName"] as? String ?: "",
+                        channelId = channelId,
+                        channelName = channel?.name ?: channelName,
                         subscriptionType = data["subscriptionType"] as? String ?: "",
+                        totalAmount = (data["totalAmount"] as? Number)?.toDouble() ?: 0.0,
                         status = if (data["isActive"] as? Boolean == true) "active" else "expired",
                         createdAt = data["createdAt"] as? Timestamp ?: Timestamp.now(),
                         updatedAt = data["updatedAt"] as? Timestamp ?: Timestamp.now()
                     )
                 } else null
             }
+
+            Log.d(TAG, "Found ${subscriptions.size} subscription history records")
+            subscriptions
         } catch (e: Exception) {
+            Log.e(TAG, "Error getting subscription history: ${e.message}", e)
             e.printStackTrace()
             emptyList()
         }
     }
 
-    // TAMBAHAN: Method untuk check apakah user sudah subscribe ke channel tertentu
+    // Method untuk check apakah user sudah subscribe ke channel tertentu
     suspend fun isUserSubscribedToChannel(channelId: String): Boolean {
         val currentUser = auth.currentUser ?: return false
 
         return try {
+            Log.d(TAG, "Checking if user is subscribed to channel: $channelId")
             val snapshot = firestore.collection("subscriptions")
                 .whereEqualTo("userId", currentUser.uid)
                 .whereEqualTo("channelId", channelId)
@@ -305,27 +433,118 @@ class CustomerRepository {
                 .get()
                 .await()
 
-            snapshot.documents.isNotEmpty()
+            val isSubscribed = snapshot.documents.isNotEmpty()
+            Log.d(TAG, "User subscription status for channel $channelId: $isSubscribed")
+            isSubscribed
         } catch (e: Exception) {
+            Log.e(TAG, "Error checking user subscription: ${e.message}", e)
             false
         }
     }
 
-    // TAMBAHAN: Method untuk mendapatkan notification user
+    // Method untuk mendapatkan notification user
     suspend fun getUserNotifications(): List<Map<String, Any>> {
         val currentUser = auth.currentUser ?: return emptyList()
 
         return try {
+            Log.d(TAG, "Getting user notifications")
             val snapshot = firestore.collection("notifications")
                 .whereEqualTo("userId", currentUser.uid)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .get()
                 .await()
 
-            snapshot.documents.mapNotNull { doc ->
+            val notifications = snapshot.documents.mapNotNull { doc ->
                 doc.data
             }
+
+            Log.d(TAG, "Found ${notifications.size} notifications")
+            notifications
         } catch (e: Exception) {
+            Log.e(TAG, "Error getting user notifications: ${e.message}", e)
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    // Method untuk cancel subscription
+    suspend fun cancelSubscription(subscriptionId: String) {
+        try {
+            Log.d(TAG, "Cancelling subscription: $subscriptionId")
+            firestore.collection("subscriptions")
+                .document(subscriptionId)
+                .update("isActive", false, "updatedAt", Timestamp.now())
+                .await()
+            Log.d(TAG, "Subscription cancelled successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error cancelling subscription: ${e.message}", e)
+            e.printStackTrace()
+        }
+    }
+
+    // Method untuk renew subscription
+    suspend fun renewSubscription(order: Order): String {
+        Log.d(TAG, "Renewing subscription for channel: ${order.channelName}")
+        val renewedOrder = order.copy(
+            id = "",
+            status = "pending",
+            createdAt = Timestamp.now(),
+            updatedAt = Timestamp.now()
+        )
+        return createOrder(renewedOrder)
+    }
+
+    // Method untuk refresh channels - memastikan data terbaru dari Firestore
+    suspend fun refreshChannels(): List<Channel> {
+        return try {
+            Log.d(TAG, "Refreshing channels data from Firestore")
+            // Langsung query ke Firestore tanpa cache
+            val snapshot = firestore.collection("channels")
+                .orderBy("name")
+                .get()
+                .await()
+
+            val allChannels = snapshot.documents.mapNotNull { doc ->
+                try {
+                    val channel = doc.toObject(Channel::class.java)?.copy(id = doc.id)
+                    Log.d(TAG, "Refreshed channel: ${channel?.name} (Active: ${channel?.isActive})")
+                    channel
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error processing channel document: ${doc.id}", e)
+                    null
+                }
+            }
+
+            Log.d(TAG, "Refreshed ${allChannels.size} channels from Firestore")
+            allChannels
+        } catch (e: Exception) {
+            Log.e(TAG, "Error refreshing channels: ${e.message}", e)
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    // Method untuk mendapatkan semua channel (termasuk yang tidak aktif) untuk debugging
+    suspend fun getAllChannels(): List<Channel> {
+        return try {
+            Log.d(TAG, "Getting all channels (including inactive)")
+            val snapshot = firestore.collection("channels")
+                .orderBy("name")
+                .get()
+                .await()
+
+            val channels = snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Channel::class.java)?.copy(id = doc.id)
+            }
+
+            Log.d(TAG, "Found ${channels.size} total channels")
+            channels.forEach { channel ->
+                Log.d(TAG, "Channel: ${channel.name} (ID: ${channel.id}, Active: ${channel.isActive})")
+            }
+
+            channels
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting all channels: ${e.message}", e)
             e.printStackTrace()
             emptyList()
         }

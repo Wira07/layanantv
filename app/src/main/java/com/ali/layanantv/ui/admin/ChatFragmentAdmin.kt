@@ -1,4 +1,4 @@
-package com.ali.layanantv.ui.customer
+package com.ali.layanantv.ui.admin
 
 import android.os.Bundle
 import android.text.Editable
@@ -13,26 +13,30 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.ali.layanantv.data.model.ChatRoom
 import com.ali.layanantv.data.model.MessageType
 import com.ali.layanantv.data.repository.ChatRepository
-import com.ali.layanantv.databinding.FragmentChatBinding
+import com.ali.layanantv.databinding.FragmentChatAdminBinding
+import com.ali.layanantv.ui.customer.ChatAdapter
+import com.ali.layanantv.ui.adapter.ChatRoomAdapter
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class ChatFragment : Fragment() {
-    private var _binding: FragmentChatBinding? = null
+class ChatFragmentAdmin : Fragment() {
+    private var _binding: FragmentChatAdminBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var chatAdapter: ChatAdapter
+    private lateinit var chatRoomAdapter: ChatRoomAdapter
     private lateinit var chatRepository: ChatRepository
     private var currentChatRoom: ChatRoom? = null
     private var typingJob: Job? = null
+    private var searchJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentChatBinding.inflate(inflater, container, false)
+        _binding = FragmentChatAdminBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -41,10 +45,19 @@ class ChatFragment : Fragment() {
 
         chatRepository = ChatRepository()
         setupUI()
-        initializeChat()
+        loadChatRooms()
     }
 
     private fun setupUI() {
+        // Setup RecyclerView for chat rooms list
+        chatRoomAdapter = ChatRoomAdapter { chatRoom ->
+            selectChatRoom(chatRoom)
+        }
+        binding.rvChatRooms.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = chatRoomAdapter
+        }
+
         // Setup RecyclerView for chat messages
         chatAdapter = ChatAdapter()
         binding.rvChatMessages.apply {
@@ -57,18 +70,19 @@ class ChatFragment : Fragment() {
             sendMessage()
         }
 
-        // Setup quick reply buttons
-        binding.btnQuickReply1.setOnClickListener {
-            binding.etMessage.setText("Saya mengalami masalah dengan channel")
+        // Setup close chat button
+        binding.btnCloseChat.setOnClickListener {
+            closeChatRoom()
         }
 
-        binding.btnQuickReply2.setOnClickListener {
-            binding.etMessage.setText("Bagaimana cara perpanjang langganan?")
-        }
-
-        binding.btnQuickReply3.setOnClickListener {
-            binding.etMessage.setText("Saya ingin membatalkan langganan")
-        }
+        // Setup search
+        binding.etSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                handleSearch(s.toString())
+            }
+        })
 
         // Setup typing indicator
         binding.etMessage.addTextChangedListener(object : TextWatcher {
@@ -78,28 +92,61 @@ class ChatFragment : Fragment() {
                 handleTyping()
             }
         })
+
+        // Setup quick reply buttons
+        binding.btnQuickReply1.setOnClickListener {
+            binding.etMessage.setText("Halo, ada yang bisa saya bantu?")
+        }
+
+        binding.btnQuickReply2.setOnClickListener {
+            binding.etMessage.setText("Terima kasih telah menghubungi customer service")
+        }
+
+        binding.btnQuickReply3.setOnClickListener {
+            binding.etMessage.setText("Apakah ada pertanyaan lain yang bisa saya bantu?")
+        }
+
+        // Initially hide chat interface
+        showChatInterface(false)
     }
 
-    private fun initializeChat() {
+    private fun loadChatRooms() {
         showLoading(true)
 
         lifecycleScope.launch {
             try {
-                // Create or get existing chat room
-                currentChatRoom = chatRepository.createOrGetChatRoom()
+                chatRepository.getChatRoomsFlow().collect { chatRooms ->
+                    chatRoomAdapter.submitList(chatRooms)
 
-                if (currentChatRoom != null) {
-                    observeMessages()
-                    markMessagesAsRead()
-                } else {
-                    showError("Gagal memuat chat room")
+                    // Update UI based on chat rooms availability
+                    if (chatRooms.isEmpty()) {
+                        binding.tvEmptyState.visibility = View.VISIBLE
+                        binding.rvChatRooms.visibility = View.GONE
+                    } else {
+                        binding.tvEmptyState.visibility = View.GONE
+                        binding.rvChatRooms.visibility = View.VISIBLE
+                    }
                 }
             } catch (e: Exception) {
-                showError("Error: ${e.message}")
+                showError("Error loading chat rooms: ${e.message}")
             } finally {
                 showLoading(false)
             }
         }
+    }
+
+    private fun selectChatRoom(chatRoom: ChatRoom) {
+        currentChatRoom = chatRoom
+
+        // Update UI
+        binding.tvChatWithUser.text = "Chat dengan ${chatRoom.userName}"
+        showChatInterface(true)
+
+        // Load messages for this chat room
+        observeMessages()
+
+        // Mark messages as read
+        markMessagesAsRead()
     }
 
     private fun observeMessages() {
@@ -136,6 +183,43 @@ class ChatFragment : Fragment() {
         }
     }
 
+    private fun closeChatRoom() {
+        currentChatRoom?.let { room ->
+            lifecycleScope.launch {
+                chatRepository.closeChatRoom(room.id)
+
+                // Reset UI
+                currentChatRoom = null
+                showChatInterface(false)
+                chatAdapter.submitList(emptyList())
+
+                Toast.makeText(context, "Chat room ditutup", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun handleSearch(query: String) {
+        searchJob?.cancel()
+
+        if (query.isEmpty()) {
+            loadChatRooms()
+            return
+        }
+
+        searchJob = lifecycleScope.launch {
+            delay(500) // Debounce search
+
+            currentChatRoom?.let { room ->
+                try {
+                    val searchResults = chatRepository.searchMessages(room.id, query)
+                    chatAdapter.submitList(searchResults)
+                } catch (e: Exception) {
+                    showError("Error searching messages: ${e.message}")
+                }
+            }
+        }
+    }
+
     private fun handleTyping() {
         currentChatRoom?.let { room ->
             // Cancel previous typing job
@@ -157,9 +241,17 @@ class ChatFragment : Fragment() {
     private fun markMessagesAsRead() {
         currentChatRoom?.let { room ->
             lifecycleScope.launch {
-                chatRepository.markMessagesAsRead(room.id, room.userId)
+                // Admin marks messages as read with current user ID
+                com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid?.let { adminId ->
+                    chatRepository.markMessagesAsRead(room.id, adminId)
+                }
             }
         }
+    }
+
+    private fun showChatInterface(show: Boolean) {
+        binding.layoutChatInterface.visibility = if (show) View.VISIBLE else View.GONE
+        binding.layoutChatRoomsList.visibility = if (show) View.GONE else View.VISIBLE
     }
 
     private fun showLoading(show: Boolean) {
@@ -181,6 +273,7 @@ class ChatFragment : Fragment() {
         }
 
         typingJob?.cancel()
+        searchJob?.cancel()
         _binding = null
     }
 }

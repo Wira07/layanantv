@@ -8,8 +8,13 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.ali.layanantv.R
 import com.ali.layanantv.data.model.Order
+import com.ali.layanantv.data.repository.CustomerRepository
 import com.ali.layanantv.databinding.ItemSubscriptionBinding
 import com.bumptech.glide.Glide
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -18,6 +23,8 @@ class SubscriptionsAdapter(
     private val onRenewClick: (Order) -> Unit,
     private val onCancelClick: (Order) -> Unit
 ) : ListAdapter<Order, SubscriptionsAdapter.ViewHolder>(DiffCallback()) {
+
+    private val customerRepository = CustomerRepository()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemSubscriptionBinding.inflate(
@@ -54,7 +61,6 @@ class SubscriptionsAdapter(
                 // Format date dengan safety check
                 try {
                     val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale("id", "ID"))
-                    // Pastikan createdAt tidak null
                     val createdDate = order.createdAt?.toDate()
                     if (createdDate != null) {
                         tvCreatedDate.text = "Berlangganan sejak: ${dateFormat.format(createdDate)}"
@@ -71,17 +77,22 @@ class SubscriptionsAdapter(
                     "confirmed" -> "Dikonfirmasi"
                     "completed" -> "Aktif"
                     "cancelled" -> "Dibatalkan"
+                    "active" -> "Aktif"
+                    "expired" -> "Kadaluarsa"
                     else -> order.status
                 }
 
                 // Set status color dengan resource color
                 val statusColor = when (order.status) {
-                    "completed" -> ContextCompat.getColor(binding.root.context, android.R.color.holo_green_dark)
+                    "completed", "active" -> ContextCompat.getColor(binding.root.context, android.R.color.holo_green_dark)
                     "pending" -> ContextCompat.getColor(binding.root.context, android.R.color.holo_orange_dark)
-                    "cancelled" -> ContextCompat.getColor(binding.root.context, android.R.color.holo_red_dark)
+                    "cancelled", "expired" -> ContextCompat.getColor(binding.root.context, android.R.color.holo_red_dark)
                     else -> ContextCompat.getColor(binding.root.context, android.R.color.darker_gray)
                 }
                 tvStatus.setTextColor(statusColor)
+
+                // Load channel logo dari channel data
+                loadChannelLogo(order.channelId)
 
                 // Button listeners dengan safety check
                 btnRenew.setOnClickListener {
@@ -101,12 +112,60 @@ class SubscriptionsAdapter(
                 }
 
                 // Enable/disable buttons based on status
-                btnRenew.isEnabled = order.status == "completed"
-                btnCancel.isEnabled = order.status != "cancelled"
+                btnRenew.isEnabled = order.status in listOf("completed", "active")
+                btnCancel.isEnabled = order.status !in listOf("cancelled", "expired")
 
-                // Optional: Set button alpha untuk visual feedback
+                // Set button alpha untuk visual feedback
                 btnRenew.alpha = if (btnRenew.isEnabled) 1.0f else 0.5f
                 btnCancel.alpha = if (btnCancel.isEnabled) 1.0f else 0.5f
+            }
+        }
+
+        private fun loadChannelLogo(channelId: String) {
+            if (channelId.isEmpty()) {
+                binding.ivChannelLogo.setImageResource(R.drawable.ic_tv)
+                return
+            }
+
+            // Load channel logo dari repository
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val channel = customerRepository.getChannelById(channelId)
+                    withContext(Dispatchers.Main) {
+                        channel?.let {
+                            when {
+                                it.logoBase64.isNotEmpty() -> {
+                                    val base64String = if (it.logoBase64.startsWith("data:image")) {
+                                        it.logoBase64
+                                    } else {
+                                        "data:image/jpeg;base64,${it.logoBase64}"
+                                    }
+                                    Glide.with(binding.root.context)
+                                        .load(base64String)
+                                        .placeholder(R.drawable.ic_tv)
+                                        .error(R.drawable.ic_tv)
+                                        .into(binding.ivChannelLogo)
+                                }
+                                it.logoUrl.isNotEmpty() -> {
+                                    Glide.with(binding.root.context)
+                                        .load(it.logoUrl)
+                                        .placeholder(R.drawable.ic_tv)
+                                        .error(R.drawable.ic_tv)
+                                        .into(binding.ivChannelLogo)
+                                }
+                                else -> {
+                                    binding.ivChannelLogo.setImageResource(R.drawable.ic_tv)
+                                }
+                            }
+                        } ?: run {
+                            binding.ivChannelLogo.setImageResource(R.drawable.ic_tv)
+                        }
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        binding.ivChannelLogo.setImageResource(R.drawable.ic_tv)
+                    }
+                }
             }
         }
     }

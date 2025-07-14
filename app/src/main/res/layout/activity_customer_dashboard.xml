@@ -9,26 +9,6 @@
     android:fitsSystemWindows="true"
     tools:context=".ui.customer.CustomerDashboardActivity">
 
-    <!-- Enhanced AppBar dengan gradient dan shadow -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/gradient_primary"
-        android:elevation="8dp"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:elevation="8dp">
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@android:color/transparent"
-            android:title="📺 Layanan Channel TV"
-            android:titleTextColor="@android:color/white"
-            android:titleTextAppearance="@style/ToolbarTitleStyle" />
-
-    </com.google.android.material.appbar.AppBarLayout>
-
     <!-- Main content tanpa padding -->
     <FrameLayout
         android:id="@+id/fragment_container"
@@ -42,7 +22,6 @@
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/gradient_primary"
         android:elevation="16dp"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"

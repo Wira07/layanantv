@@ -52,6 +52,15 @@
 
     </LinearLayout>
 
+    <!-- Loading indicator -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="16dp"
+        android:visibility="gone" />
+
     <!-- Quick Reply Buttons -->
     <ScrollView
         android:layout_width="match_parent"
@@ -71,7 +80,7 @@
                 android:text="Masalah Channel"
                 android:textSize="12sp"
                 android:layout_marginEnd="8dp"
-                android:backgroundTint="@color/accent_color"
+                android:backgroundTint="@color/background_dark"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
             <Button
@@ -81,7 +90,7 @@
                 android:text="Perpanjang Langganan"
                 android:textSize="12sp"
                 android:layout_marginEnd="8dp"
-                android:backgroundTint="@color/accent_color"
+                android:backgroundTint="@color/background_dark"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
             <Button
@@ -90,7 +99,7 @@
                 android:layout_height="wrap_content"
                 android:text="Batalkan Langganan"
                 android:textSize="12sp"
-                android:backgroundTint="@color/accent_color"
+                android:backgroundTint="@color/background_color"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
         </LinearLayout>

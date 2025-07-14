@@ -37,6 +37,10 @@ class CustomerDashboardActivity : AppCompatActivity() {
                     replaceFragment(HistoryFragment())
                     true
                 }
+                R.id.nav_chat -> {
+                    replaceFragment(ChatFragment())
+                    true
+                }
                 R.id.nav_profile -> {
                     replaceFragment(ProfileFragment())
                     true

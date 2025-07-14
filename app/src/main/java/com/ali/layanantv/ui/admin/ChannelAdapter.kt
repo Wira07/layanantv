@@ -2,6 +2,7 @@ package com.ali.layanantv.ui.admin
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -38,37 +39,70 @@ class ChannelAdapter(
                 tvChannelDescription.text = channel.description
                 tvChannelCategory.text = channel.category
 
-                val formatter = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
-                tvChannelPrice.text = formatter.format(channel.price)
+                // Format price dengan safety check
+                try {
+                    val formatter = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
+                    tvChannelPrice.text = formatter.format(channel.price)
+                } catch (e: Exception) {
+                    tvChannelPrice.text = "Rp ${channel.price}"
+                }
 
                 // Status indicator
                 val statusText = if (channel.isActive) "Aktif" else "Nonaktif"
                 val statusColor = if (channel.isActive)
-                    itemView.context.getColor(R.color.success_color)
+                    ContextCompat.getColor(itemView.context, android.R.color.holo_green_dark)
                 else
-                    itemView.context.getColor(R.color.error_color)
+                    ContextCompat.getColor(itemView.context, android.R.color.holo_red_dark)
 
                 tvChannelStatus.text = statusText
                 tvChannelStatus.setTextColor(statusColor)
 
-                // Load channel logo
-                if (channel.logoUrl.isNotEmpty()) {
-                    Glide.with(itemView.context)
-                        .load(channel.logoUrl)
-                        .placeholder(R.drawable.ic_tv)
-                        .error(R.drawable.ic_tv)
-                        .into(ivChannelLogo)
-                } else {
+                // Load channel logo dengan prioritas Base64 -> URL -> placeholder
+                try {
+                    when {
+                        channel.logoBase64.isNotEmpty() -> {
+                            val base64String = if (channel.logoBase64.startsWith("data:image")) {
+                                channel.logoBase64
+                            } else {
+                                "data:image/jpeg;base64,${channel.logoBase64}"
+                            }
+                            Glide.with(itemView.context)
+                                .load(base64String)
+                                .placeholder(R.drawable.ic_tv)
+                                .error(R.drawable.ic_tv)
+                                .into(ivChannelLogo)
+                        }
+                        channel.logoUrl.isNotEmpty() -> {
+                            Glide.with(itemView.context)
+                                .load(channel.logoUrl)
+                                .placeholder(R.drawable.ic_tv)
+                                .error(R.drawable.ic_tv)
+                                .into(ivChannelLogo)
+                        }
+                        else -> {
+                            ivChannelLogo.setImageResource(R.drawable.ic_tv)
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Fallback jika ada error loading gambar
                     ivChannelLogo.setImageResource(R.drawable.ic_tv)
                 }
 
-                // Button listeners
+                // Button listeners dengan safety check
                 btnEditChannel.setOnClickListener {
-                    onEditClick(channel)
+                    try {
+                        onEditClick(channel)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
 
                 btnDeleteChannel.setOnClickListener {
-                    onDeleteClick(channel)
+                    try {
+                        onDeleteClick(channel)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
         }
