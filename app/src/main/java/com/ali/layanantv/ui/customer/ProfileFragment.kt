@@ -55,15 +55,6 @@ class ProfileFragment : Fragment() {
             }
         }
 
-        binding.btnNotificationSettings.setOnClickListener {
-            try {
-                val intent = Intent(requireContext(), NotificationSettingsActivity::class.java)
-                startActivity(intent)
-            } catch (e: Exception) {
-                Toast.makeText(context, "Notification Settings feature coming soon", Toast.LENGTH_SHORT).show()
-            }
-        }
-
         binding.btnHelp.setOnClickListener {
             try {
                 val intent = Intent(requireContext(), HelpActivity::class.java)

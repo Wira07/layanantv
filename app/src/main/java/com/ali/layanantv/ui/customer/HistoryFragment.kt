@@ -20,6 +20,7 @@ class HistoryFragment : Fragment() {
     private lateinit var customerRepository: CustomerRepository
     private lateinit var historyAdapter: PurchaseHistoryAdapter
     private var currentFilter = "all"
+    private var allOrders = listOf<Order>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -33,17 +34,26 @@ class HistoryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         customerRepository = CustomerRepository()
+
+        // Debug log
+        android.util.Log.d("HistoryFragment", "onViewCreated - Setting up UI")
+
         setupUI()
         loadPurchaseHistory()
     }
 
     private fun setupUI() {
+        // Debug log
+        android.util.Log.d("HistoryFragment", "Setting up UI")
+
         // Setup RecyclerView for purchase history
         historyAdapter = PurchaseHistoryAdapter(
             onItemClick = { order ->
+                android.util.Log.d("HistoryFragment", "Order clicked: ${order.channelName}")
                 showOrderDetails(order)
             },
             onReorderClick = { order ->
+                android.util.Log.d("HistoryFragment", "Reorder clicked: ${order.channelName}")
                 reorderSubscription(order)
             }
         )
@@ -55,65 +65,132 @@ class HistoryFragment : Fragment() {
 
         // Setup filter buttons
         binding.btnFilterAll.setOnClickListener {
+            android.util.Log.d("HistoryFragment", "Filter All clicked")
             currentFilter = "all"
             updateFilterUI()
-            loadPurchaseHistory()
+            applyFilter()
         }
 
         binding.btnFilterActive.setOnClickListener {
+            android.util.Log.d("HistoryFragment", "Filter Active clicked")
             currentFilter = "completed"
             updateFilterUI()
-            loadPurchaseHistory()
+            applyFilter()
         }
 
         binding.btnFilterExpired.setOnClickListener {
+            android.util.Log.d("HistoryFragment", "Filter Expired clicked")
             currentFilter = "cancelled"
             updateFilterUI()
-            loadPurchaseHistory()
+            applyFilter()
         }
 
         // Setup swipe refresh
         binding.swipeRefresh.setOnRefreshListener {
-            loadPurchaseHistory()
+            android.util.Log.d("HistoryFragment", "Swipe refresh triggered")
+            refreshData()
         }
     }
 
     private fun updateFilterUI() {
-        // Reset all button styles
-        binding.btnFilterAll.isSelected = currentFilter == "all"
-        binding.btnFilterActive.isSelected = currentFilter == "completed"
-        binding.btnFilterExpired.isSelected = currentFilter == "cancelled"
+        // Check if binding is still valid
+        _binding?.let { binding ->
+            // Reset all button styles
+            binding.btnFilterAll.isSelected = currentFilter == "all"
+            binding.btnFilterActive.isSelected = currentFilter == "completed"
+            binding.btnFilterExpired.isSelected = currentFilter == "cancelled"
+        }
     }
 
     private fun loadPurchaseHistory() {
         lifecycleScope.launch {
             try {
-                if (!binding.swipeRefresh.isRefreshing) {
-                    binding.progressBar.visibility = View.VISIBLE
+                // Check if binding is still valid before accessing it
+                _binding?.let { binding ->
+                    if (!binding.swipeRefresh.isRefreshing) {
+                        binding.progressBar.visibility = View.VISIBLE
+                    }
                 }
 
-                val allOrders = customerRepository.getUserOrders()
-                val filteredOrders = when (currentFilter) {
-                    "all" -> allOrders
-                    else -> allOrders.filter { it.status == currentFilter }
+                // Gunakan getOrderHistory langsung
+                val orders = customerRepository.getOrderHistory()
+                allOrders = orders
+
+                // Debug log
+                android.util.Log.d("HistoryFragment", "Loaded ${orders.size} orders")
+                orders.forEach { order ->
+                    android.util.Log.d("HistoryFragment", "Order: ${order.channelName} - ${order.status}")
                 }
 
-                if (filteredOrders.isEmpty()) {
-                    binding.layoutEmpty.visibility = View.VISIBLE
-                    binding.rvPurchaseHistory.visibility = View.GONE
-                } else {
-                    binding.layoutEmpty.visibility = View.GONE
-                    binding.rvPurchaseHistory.visibility = View.VISIBLE
-                    historyAdapter.submitList(filteredOrders)
-                }
+                applyFilter()
 
-                binding.progressBar.visibility = View.GONE
-                binding.swipeRefresh.isRefreshing = false
+                // Check if binding is still valid before accessing it
+                _binding?.let { binding ->
+                    binding.progressBar.visibility = View.GONE
+                    binding.swipeRefresh.isRefreshing = false
+                }
 
             } catch (e: Exception) {
-                binding.progressBar.visibility = View.GONE
-                binding.swipeRefresh.isRefreshing = false
-                Toast.makeText(context, "Error loading history: ${e.message}", Toast.LENGTH_SHORT).show()
+                // Check if binding is still valid before accessing it
+                _binding?.let { binding ->
+                    binding.progressBar.visibility = View.GONE
+                    binding.swipeRefresh.isRefreshing = false
+                }
+                android.util.Log.e("HistoryFragment", "Error loading history", e)
+                showError("Error loading history: ${e.message}")
+            }
+        }
+    }
+
+    private fun refreshData() {
+        lifecycleScope.launch {
+            try {
+                // Load fresh data menggunakan getOrderHistory
+                val orders = customerRepository.getOrderHistory()
+                allOrders = orders
+
+                // Debug log
+                android.util.Log.d("HistoryFragment", "Refreshed ${orders.size} orders")
+
+                applyFilter()
+
+                // Check if binding is still valid before accessing it
+                _binding?.let { binding ->
+                    binding.swipeRefresh.isRefreshing = false
+                }
+
+            } catch (e: Exception) {
+                // Check if binding is still valid before accessing it
+                _binding?.let { binding ->
+                    binding.swipeRefresh.isRefreshing = false
+                }
+                android.util.Log.e("HistoryFragment", "Error refreshing data", e)
+                showError("Error refreshing data: ${e.message}")
+            }
+        }
+    }
+
+    private fun applyFilter() {
+        // Check if binding is still valid before proceeding
+        _binding?.let { binding ->
+            val filteredOrders = when (currentFilter) {
+                "all" -> allOrders
+                else -> allOrders.filter { it.status == currentFilter }
+            }
+
+            // Debug log
+            android.util.Log.d("HistoryFragment", "Applying filter: $currentFilter")
+            android.util.Log.d("HistoryFragment", "Total orders: ${allOrders.size}, Filtered: ${filteredOrders.size}")
+
+            if (filteredOrders.isEmpty()) {
+                binding.layoutEmpty.visibility = View.VISIBLE
+                binding.rvPurchaseHistory.visibility = View.GONE
+                android.util.Log.d("HistoryFragment", "Showing empty state")
+            } else {
+                binding.layoutEmpty.visibility = View.GONE
+                binding.rvPurchaseHistory.visibility = View.VISIBLE
+                historyAdapter.submitList(filteredOrders)
+                android.util.Log.d("HistoryFragment", "Showing ${filteredOrders.size} orders in RecyclerView")
             }
         }
     }
@@ -139,8 +216,45 @@ class HistoryFragment : Fragment() {
     }
 
     private fun reorderSubscription(order: Order) {
-        // TODO: Implement reorder logic
-        Toast.makeText(context, "Reordering ${order.channelName}", Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            try {
+                // Check if binding is still valid before accessing it
+                _binding?.let { binding ->
+                    binding.progressBar.visibility = View.VISIBLE
+                }
+
+                android.util.Log.d("HistoryFragment", "Reordering subscription for: ${order.channelName}")
+
+                // Use the renewSubscription function from repository
+                val newOrderId = customerRepository.renewSubscription(order)
+
+                // Check if binding is still valid before accessing it
+                _binding?.let { binding ->
+                    binding.progressBar.visibility = View.GONE
+                }
+
+                Toast.makeText(
+                    context,
+                    "Subscription berhasil diperpanjang untuk ${order.channelName}. Order ID: $newOrderId",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                // Refresh data to show the new order
+                refreshData()
+
+            } catch (e: Exception) {
+                // Check if binding is still valid before accessing it
+                _binding?.let { binding ->
+                    binding.progressBar.visibility = View.GONE
+                }
+                android.util.Log.e("HistoryFragment", "Error reordering subscription", e)
+                showError("Error reordering subscription: ${e.message}")
+            }
+        }
+    }
+
+    private fun showError(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 
     override fun onDestroyView() {

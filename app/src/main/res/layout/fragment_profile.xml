@@ -241,26 +241,6 @@
             app:rippleColor="@color/ripple_light"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
-        <!-- Notification Settings Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_notification_settings"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="Pengaturan Notifikasi"
-            android:textSize="14sp"
-            android:textColor="@color/text_dark"
-            android:backgroundTint="@android:color/transparent"
-            android:strokeColor="@color/stroke_light"
-            android:strokeWidth="1"
-            android:layout_marginBottom="32dp"
-            android:drawableStart="@drawable/ic_notification"
-            android:drawablePadding="12dp"
-            android:gravity="start|center_vertical"
-            android:paddingStart="20dp"
-            app:cornerRadius="12dp"
-            app:rippleColor="@color/ripple_light"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
         <!-- App Settings Section -->
         <TextView
             android:layout_width="wrap_content"

@@ -540,31 +540,6 @@ class CustomerRepository {
         }
     }
 
-    // Method untuk mendapatkan notification user
-    suspend fun getUserNotifications(): List<Map<String, Any>> {
-        val currentUser = auth.currentUser ?: return emptyList()
-
-        return try {
-            Log.d(TAG, "Getting user notifications")
-            val snapshot = firestore.collection("notifications")
-                .whereEqualTo("userId", currentUser.uid)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
-                .get()
-                .await()
-
-            val notifications = snapshot.documents.mapNotNull { doc ->
-                doc.data
-            }
-
-            Log.d(TAG, "Found ${notifications.size} notifications")
-            notifications
-        } catch (e: Exception) {
-            Log.e(TAG, "Error getting user notifications: ${e.message}", e)
-            e.printStackTrace()
-            emptyList()
-        }
-    }
-
     // Method untuk cancel subscription
     suspend fun cancelSubscription(subscriptionId: String) {
         try {
