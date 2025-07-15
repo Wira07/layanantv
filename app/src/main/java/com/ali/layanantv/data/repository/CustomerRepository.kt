@@ -64,6 +64,8 @@ class CustomerRepository {
         }
     }
 
+
+
     // Get channel by ID
     suspend fun getChannelById(channelId: String): Channel? {
         return try {
@@ -91,10 +93,49 @@ class CustomerRepository {
     }
 
     // Create subscription record when order is completed
+    // Add this improved createSubscription method to CustomerRepository
     suspend fun createSubscription(order: Order) {
         try {
             Log.d(TAG, "Creating subscription for order: ${order.id}")
-            val subscription = mapOf(
+            Log.d(TAG, "Order details: userId=${order.userId}, channelId=${order.channelId}, channelName=${order.channelName}, status=${order.status}")
+
+            // Pastikan order memiliki data yang lengkap
+            if (order.userId.isEmpty() || order.channelId.isEmpty() || order.channelName.isNullOrEmpty()) {
+                Log.e(TAG, "Order data incomplete: userId=${order.userId}, channelId=${order.channelId}, channelName=${order.channelName}")
+                throw IllegalArgumentException("Order data is incomplete")
+            }
+
+            // Check if subscription already exists
+            val existingSubscription = firestore.collection("subscriptions")
+                .whereEqualTo("userId", order.userId)
+                .whereEqualTo("channelId", order.channelId)
+                .whereEqualTo("isActive", true)
+                .get()
+                .await()
+
+            if (existingSubscription.documents.isNotEmpty()) {
+                Log.w(TAG, "Subscription already exists for user ${order.userId} and channel ${order.channelId}")
+
+                // Update existing subscription instead of creating new one
+                val existingDoc = existingSubscription.documents.first()
+                firestore.collection("subscriptions")
+                    .document(existingDoc.id)
+                    .update(
+                        mapOf(
+                            "orderId" to order.id,
+                            "totalAmount" to order.totalAmount,
+                            "subscriptionType" to order.subscriptionType,
+                            "updatedAt" to Timestamp.now()
+                        )
+                    )
+                    .await()
+
+                Log.d(TAG, "Updated existing subscription with new order data")
+                return
+            }
+
+            // Create new subscription
+            val subscription = hashMapOf(
                 "userId" to order.userId,
                 "channelId" to order.channelId,
                 "channelName" to order.channelName,
@@ -102,15 +143,34 @@ class CustomerRepository {
                 "totalAmount" to order.totalAmount,
                 "orderId" to order.id,
                 "isActive" to true,
+                "status" to "active",
                 "createdAt" to Timestamp.now(),
                 "updatedAt" to Timestamp.now()
             )
 
-            firestore.collection("subscriptions").add(subscription).await()
-            Log.d(TAG, "Subscription created successfully")
+            val docRef = firestore.collection("subscriptions").add(subscription).await()
+            Log.d(TAG, "Subscription created successfully with ID: ${docRef.id}")
+
+            // Update order status to ensure it's completed
+            if (order.id.isNotEmpty()) {
+                val updateData = mapOf(
+                    "status" to "completed",
+                    "paymentVerified" to true,
+                    "updatedAt" to Timestamp.now()
+                )
+
+                firestore.collection("orders")
+                    .document(order.id)
+                    .update(updateData)
+                    .await()
+                Log.d(TAG, "Order status updated to completed with paymentVerified=true")
+            }
+
+            Log.d(TAG, "Successfully created subscription and updated order")
+
         } catch (e: Exception) {
             Log.e(TAG, "Error creating subscription: ${e.message}", e)
-            e.printStackTrace()
+            throw e // Re-throw to be handled by caller
         }
     }
 
@@ -334,6 +394,7 @@ class CustomerRepository {
             CustomerDashboardStats()
         }
     }
+
 
     // Method untuk mendapatkan order history dengan pagination
     suspend fun getOrderHistory(limit: Int = 10, lastOrderId: String? = null): List<Order> {

@@ -19,6 +19,8 @@ import com.ali.layanantv.ui.adapter.ChatRoomAdapter
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.TimeoutCancellationException
 
 class ChatFragmentAdmin : Fragment() {
     private var _binding: FragmentChatAdminBinding? = null
@@ -30,6 +32,13 @@ class ChatFragmentAdmin : Fragment() {
     private var currentChatRoom: ChatRoom? = null
     private var typingJob: Job? = null
     private var searchJob: Job? = null
+    private var loadingJob: Job? = null
+
+    companion object {
+        private const val LOADING_TIMEOUT = 10000L // 10 seconds timeout
+        private const val TYPING_DELAY = 2000L
+        private const val SEARCH_DEBOUNCE = 500L
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -111,25 +120,50 @@ class ChatFragmentAdmin : Fragment() {
     }
 
     private fun loadChatRooms() {
+        // Cancel any existing loading job
+        loadingJob?.cancel()
+
         showLoading(true)
 
-        lifecycleScope.launch {
+        loadingJob = lifecycleScope.launch {
             try {
-                chatRepository.getChatRoomsFlow().collect { chatRooms ->
-                    chatRoomAdapter.submitList(chatRooms)
+                // Add timeout to prevent endless loading
+                withTimeout(LOADING_TIMEOUT) {
+                    chatRepository.getChatRoomsFlow().collect { chatRooms ->
+                        // Hide loading as soon as we get data
+                        showLoading(false)
 
-                    // Update UI based on chat rooms availability
-                    if (chatRooms.isEmpty()) {
-                        binding.tvEmptyState.visibility = View.VISIBLE
-                        binding.rvChatRooms.visibility = View.GONE
-                    } else {
-                        binding.tvEmptyState.visibility = View.GONE
-                        binding.rvChatRooms.visibility = View.VISIBLE
+                        chatRoomAdapter.submitList(chatRooms)
+
+                        // Update UI based on chat rooms availability
+                        if (chatRooms.isEmpty()) {
+                            binding.tvEmptyState.visibility = View.VISIBLE
+                            binding.rvChatRooms.visibility = View.GONE
+                        } else {
+                            binding.tvEmptyState.visibility = View.GONE
+                            binding.rvChatRooms.visibility = View.VISIBLE
+                        }
                     }
                 }
+            } catch (e: TimeoutCancellationException) {
+                showLoading(false)
+                showError("Loading timeout. Please try again.")
+                // Show empty state on timeout
+                binding.tvEmptyState.visibility = View.VISIBLE
+                binding.rvChatRooms.visibility = View.GONE
             } catch (e: Exception) {
+                showLoading(false)
                 showError("Error loading chat rooms: ${e.message}")
-            } finally {
+                // Show empty state on error
+                binding.tvEmptyState.visibility = View.VISIBLE
+                binding.rvChatRooms.visibility = View.GONE
+            }
+        }
+
+        // Additional safety: Hide loading after maximum time regardless
+        lifecycleScope.launch {
+            delay(LOADING_TIMEOUT)
+            if (binding.progressBar.visibility == View.VISIBLE) {
                 showLoading(false)
             }
         }
@@ -140,6 +174,7 @@ class ChatFragmentAdmin : Fragment() {
 
         // Update UI
         binding.tvChatWithUser.text = "Chat dengan ${chatRoom.userName}"
+        binding.btnCloseChat.visibility = View.VISIBLE
         showChatInterface(true)
 
         // Load messages for this chat room
@@ -152,16 +187,22 @@ class ChatFragmentAdmin : Fragment() {
     private fun observeMessages() {
         currentChatRoom?.let { room ->
             lifecycleScope.launch {
-                chatRepository.getMessages(room.id).collect { messages ->
-                    chatAdapter.submitList(messages)
+                try {
+                    chatRepository.getMessages(room.id).collect { messages ->
+                        chatAdapter.submitList(messages)
 
-                    // Scroll to bottom when new messages arrive
-                    if (messages.isNotEmpty()) {
-                        binding.rvChatMessages.scrollToPosition(messages.size - 1)
+                        // Scroll to bottom when new messages arrive
+                        if (messages.isNotEmpty()) {
+                            binding.rvChatMessages.post {
+                                binding.rvChatMessages.scrollToPosition(messages.size - 1)
+                            }
+                        }
+
+                        // Mark messages as read
+                        markMessagesAsRead()
                     }
-
-                    // Mark messages as read
-                    markMessagesAsRead()
+                } catch (e: Exception) {
+                    showError("Error loading messages: ${e.message}")
                 }
             }
         }
@@ -175,9 +216,13 @@ class ChatFragmentAdmin : Fragment() {
             binding.etMessage.text?.clear()
 
             lifecycleScope.launch {
-                val success = chatRepository.sendMessage(room.id, message, MessageType.TEXT)
-                if (!success) {
-                    showError("Gagal mengirim pesan")
+                try {
+                    val success = chatRepository.sendMessage(room.id, message, MessageType.TEXT)
+                    if (!success) {
+                        showError("Gagal mengirim pesan")
+                    }
+                } catch (e: Exception) {
+                    showError("Error sending message: ${e.message}")
                 }
             }
         }
@@ -186,14 +231,19 @@ class ChatFragmentAdmin : Fragment() {
     private fun closeChatRoom() {
         currentChatRoom?.let { room ->
             lifecycleScope.launch {
-                chatRepository.closeChatRoom(room.id)
+                try {
+                    chatRepository.closeChatRoom(room.id)
 
-                // Reset UI
-                currentChatRoom = null
-                showChatInterface(false)
-                chatAdapter.submitList(emptyList())
+                    // Reset UI
+                    currentChatRoom = null
+                    binding.btnCloseChat.visibility = View.GONE
+                    showChatInterface(false)
+                    chatAdapter.submitList(emptyList())
 
-                Toast.makeText(context, "Chat room ditutup", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Chat room ditutup", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    showError("Error closing chat room: ${e.message}")
+                }
             }
         }
     }
@@ -207,7 +257,7 @@ class ChatFragmentAdmin : Fragment() {
         }
 
         searchJob = lifecycleScope.launch {
-            delay(500) // Debounce search
+            delay(SEARCH_DEBOUNCE) // Debounce search
 
             currentChatRoom?.let { room ->
                 try {
@@ -227,13 +277,21 @@ class ChatFragmentAdmin : Fragment() {
 
             // Set typing status to true
             lifecycleScope.launch {
-                chatRepository.setTypingStatus(room.id, true)
+                try {
+                    chatRepository.setTypingStatus(room.id, true)
+                } catch (e: Exception) {
+                    // Silently handle typing status errors
+                }
             }
 
             // Set typing status to false after 2 seconds of inactivity
             typingJob = lifecycleScope.launch {
-                delay(2000)
-                chatRepository.setTypingStatus(room.id, false)
+                delay(TYPING_DELAY)
+                try {
+                    chatRepository.setTypingStatus(room.id, false)
+                } catch (e: Exception) {
+                    // Silently handle typing status errors
+                }
             }
         }
     }
@@ -241,9 +299,13 @@ class ChatFragmentAdmin : Fragment() {
     private fun markMessagesAsRead() {
         currentChatRoom?.let { room ->
             lifecycleScope.launch {
-                // Admin marks messages as read with current user ID
-                com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid?.let { adminId ->
-                    chatRepository.markMessagesAsRead(room.id, adminId)
+                try {
+                    // Admin marks messages as read with current user ID
+                    com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid?.let { adminId ->
+                        chatRepository.markMessagesAsRead(room.id, adminId)
+                    }
+                } catch (e: Exception) {
+                    // Silently handle read status errors
                 }
             }
         }
@@ -268,12 +330,18 @@ class ChatFragmentAdmin : Fragment() {
         // Stop typing indicator when leaving
         currentChatRoom?.let { room ->
             lifecycleScope.launch {
-                chatRepository.setTypingStatus(room.id, false)
+                try {
+                    chatRepository.setTypingStatus(room.id, false)
+                } catch (e: Exception) {
+                    // Silently handle typing status errors
+                }
             }
         }
 
+        // Cancel all jobs
         typingJob?.cancel()
         searchJob?.cancel()
+        loadingJob?.cancel()
         _binding = null
     }
 }
