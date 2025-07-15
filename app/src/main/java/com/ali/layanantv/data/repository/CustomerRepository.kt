@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.EmailAuthProvider
 import kotlinx.coroutines.tasks.await
 
 class CustomerRepository {
@@ -63,8 +64,6 @@ class CustomerRepository {
             emptyList()
         }
     }
-
-
 
     // Get channel by ID
     suspend fun getChannelById(channelId: String): Channel? {
@@ -288,20 +287,58 @@ class CustomerRepository {
         }
     }
 
-    // Update user profile
-    suspend fun updateUserProfile(user: User) {
-        val currentUser = auth.currentUser ?: return
+    // Update user profile - Fixed method with individual parameters
+    suspend fun updateUserProfile(
+        name: String,
+        email: String,
+        phoneNumber: String,
+        profilePhoto: String?
+    ): Boolean {
+        val currentUser = auth.currentUser ?: return false
 
-        try {
+        return try {
             Log.d(TAG, "Updating user profile")
+            val updateData = hashMapOf<String, Any>(
+                "name" to name,
+                "email" to email,
+                "phoneNumber" to phoneNumber,
+                "updatedAt" to Timestamp.now()
+            )
+
+            profilePhoto?.let {
+                updateData["profilePhoto"] = it
+            }
+
+            firestore.collection("users")
+                .document(currentUser.uid)
+                .update(updateData)
+                .await()
+
+            Log.d(TAG, "User profile updated successfully")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating user profile: ${e.message}", e)
+            e.printStackTrace()
+            false
+        }
+    }
+
+    // Overloaded method for User object (keeping backward compatibility)
+    suspend fun updateUserProfile(user: User): Boolean {
+        val currentUser = auth.currentUser ?: return false
+
+        return try {
+            Log.d(TAG, "Updating user profile with User object")
             firestore.collection("users")
                 .document(currentUser.uid)
                 .set(user)
                 .await()
             Log.d(TAG, "User profile updated successfully")
+            true
         } catch (e: Exception) {
             Log.e(TAG, "Error updating user profile: ${e.message}", e)
             e.printStackTrace()
+            false
         }
     }
 
@@ -582,6 +619,60 @@ class CustomerRepository {
             Log.e(TAG, "Error refreshing channels: ${e.message}", e)
             e.printStackTrace()
             emptyList()
+        }
+    }
+
+    // Method untuk change password
+    suspend fun changePassword(currentPassword: String, newPassword: String): Boolean {
+        val currentUser = auth.currentUser ?: return false
+
+        return try {
+            Log.d(TAG, "Starting password change process")
+
+            // Re-authenticate user with current password
+            val credential = EmailAuthProvider.getCredential(currentUser.email!!, currentPassword)
+            currentUser.reauthenticate(credential).await()
+
+            Log.d(TAG, "User re-authenticated successfully")
+
+            // Update password
+            currentUser.updatePassword(newPassword).await()
+
+            Log.d(TAG, "Password updated successfully")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error changing password: ${e.message}", e)
+            false
+        }
+    }
+
+    // Method untuk validate current password
+    suspend fun validateCurrentPassword(currentPassword: String): Boolean {
+        val currentUser = auth.currentUser ?: return false
+
+        return try {
+            Log.d(TAG, "Validating current password")
+            val credential = EmailAuthProvider.getCredential(currentUser.email!!, currentPassword)
+            currentUser.reauthenticate(credential).await()
+
+            Log.d(TAG, "Current password is valid")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Current password validation failed: ${e.message}", e)
+            false
+        }
+    }
+
+    // Method untuk reset password via email
+    suspend fun sendPasswordResetEmail(email: String): Boolean {
+        return try {
+            Log.d(TAG, "Sending password reset email to: $email")
+            auth.sendPasswordResetEmail(email).await()
+            Log.d(TAG, "Password reset email sent successfully")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error sending password reset email: ${e.message}", e)
+            false
         }
     }
 
