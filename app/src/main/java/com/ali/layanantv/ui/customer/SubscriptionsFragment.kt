@@ -41,9 +41,13 @@ class SubscriptionsFragment : Fragment() {
     ) { result ->
         if (result.resultCode == android.app.Activity.RESULT_OK) {
             Log.d(TAG, "Channel browser returned success, reloading subscriptions")
-            // Add longer delay to ensure database is updated
             lifecycleScope.launch {
-                delay(3000) // Increase delay to 3 seconds
+                // Berikan waktu lebih untuk database sync
+                delay(5000) // Increase to 5 seconds
+                loadSubscriptions()
+
+                // Backup reload jika masih belum muncul
+                delay(3000)
                 loadSubscriptions()
             }
         }

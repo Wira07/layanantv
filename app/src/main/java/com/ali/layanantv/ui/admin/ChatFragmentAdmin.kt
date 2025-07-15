@@ -21,6 +21,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.isActive
 
 class ChatFragmentAdmin : Fragment() {
     private var _binding: FragmentChatAdminBinding? = null
@@ -123,13 +124,22 @@ class ChatFragmentAdmin : Fragment() {
         // Cancel any existing loading job
         loadingJob?.cancel()
 
+        // Check if fragment is still active
+        if (!isAdded || _binding == null) return
+
         showLoading(true)
 
         loadingJob = lifecycleScope.launch {
             try {
+                // Check if coroutine is still active
+                if (!isActive) return@launch
+
                 // Add timeout to prevent endless loading
                 withTimeout(LOADING_TIMEOUT) {
                     chatRepository.getChatRoomsFlow().collect { chatRooms ->
+                        // Check if fragment is still active and attached
+                        if (!isActive || !isAdded || _binding == null) return@collect
+
                         // Hide loading as soon as we get data
                         showLoading(false)
 
@@ -146,14 +156,19 @@ class ChatFragmentAdmin : Fragment() {
                     }
                 }
             } catch (e: TimeoutCancellationException) {
+                if (!isActive || !isAdded || _binding == null) return@launch
                 showLoading(false)
                 showError("Loading timeout. Please try again.")
                 // Show empty state on timeout
                 binding.tvEmptyState.visibility = View.VISIBLE
                 binding.rvChatRooms.visibility = View.GONE
             } catch (e: Exception) {
+                if (!isActive || !isAdded || _binding == null) return@launch
                 showLoading(false)
-                showError("Error loading chat rooms: ${e.message}")
+                // Only show error if it's not a cancellation
+                if (e.message?.contains("cancelled", ignoreCase = true) != true) {
+                    showError("Error loading chat rooms: ${e.message}")
+                }
                 // Show empty state on error
                 binding.tvEmptyState.visibility = View.VISIBLE
                 binding.rvChatRooms.visibility = View.GONE
@@ -163,7 +178,7 @@ class ChatFragmentAdmin : Fragment() {
         // Additional safety: Hide loading after maximum time regardless
         lifecycleScope.launch {
             delay(LOADING_TIMEOUT)
-            if (binding.progressBar.visibility == View.VISIBLE) {
+            if (isActive && isAdded && _binding != null && binding.progressBar.visibility == View.VISIBLE) {
                 showLoading(false)
             }
         }
@@ -188,13 +203,20 @@ class ChatFragmentAdmin : Fragment() {
         currentChatRoom?.let { room ->
             lifecycleScope.launch {
                 try {
+                    if (!isActive || !isAdded || _binding == null) return@launch
+
                     chatRepository.getMessages(room.id).collect { messages ->
+                        // Check if fragment is still active and attached
+                        if (!isActive || !isAdded || _binding == null) return@collect
+
                         chatAdapter.submitList(messages)
 
                         // Scroll to bottom when new messages arrive
                         if (messages.isNotEmpty()) {
                             binding.rvChatMessages.post {
-                                binding.rvChatMessages.scrollToPosition(messages.size - 1)
+                                if (isAdded && _binding != null) {
+                                    binding.rvChatMessages.scrollToPosition(messages.size - 1)
+                                }
                             }
                         }
 
@@ -202,7 +224,11 @@ class ChatFragmentAdmin : Fragment() {
                         markMessagesAsRead()
                     }
                 } catch (e: Exception) {
-                    showError("Error loading messages: ${e.message}")
+                    if (!isActive || !isAdded || _binding == null) return@launch
+                    // Only show error if it's not a cancellation
+                    if (e.message?.contains("cancelled", ignoreCase = true) != true) {
+                        showError("Error loading messages: ${e.message}")
+                    }
                 }
             }
         }
@@ -217,12 +243,18 @@ class ChatFragmentAdmin : Fragment() {
 
             lifecycleScope.launch {
                 try {
+                    if (!isActive || !isAdded || _binding == null) return@launch
+
                     val success = chatRepository.sendMessage(room.id, message, MessageType.TEXT)
-                    if (!success) {
+                    if (!success && isActive && isAdded && _binding != null) {
                         showError("Gagal mengirim pesan")
                     }
                 } catch (e: Exception) {
-                    showError("Error sending message: ${e.message}")
+                    if (!isActive || !isAdded || _binding == null) return@launch
+                    // Only show error if it's not a cancellation
+                    if (e.message?.contains("cancelled", ignoreCase = true) != true) {
+                        showError("Error sending message: ${e.message}")
+                    }
                 }
             }
         }
@@ -232,6 +264,8 @@ class ChatFragmentAdmin : Fragment() {
         currentChatRoom?.let { room ->
             lifecycleScope.launch {
                 try {
+                    if (!isActive || !isAdded || _binding == null) return@launch
+
                     chatRepository.closeChatRoom(room.id)
 
                     // Reset UI
@@ -240,9 +274,15 @@ class ChatFragmentAdmin : Fragment() {
                     showChatInterface(false)
                     chatAdapter.submitList(emptyList())
 
-                    Toast.makeText(context, "Chat room ditutup", Toast.LENGTH_SHORT).show()
+                    if (isActive && isAdded && _binding != null) {
+                        Toast.makeText(context, "Chat room ditutup", Toast.LENGTH_SHORT).show()
+                    }
                 } catch (e: Exception) {
-                    showError("Error closing chat room: ${e.message}")
+                    if (!isActive || !isAdded || _binding == null) return@launch
+                    // Only show error if it's not a cancellation
+                    if (e.message?.contains("cancelled", ignoreCase = true) != true) {
+                        showError("Error closing chat room: ${e.message}")
+                    }
                 }
             }
         }
@@ -257,13 +297,21 @@ class ChatFragmentAdmin : Fragment() {
         }
 
         searchJob = lifecycleScope.launch {
-            delay(SEARCH_DEBOUNCE) // Debounce search
+            try {
+                delay(SEARCH_DEBOUNCE) // Debounce search
 
-            currentChatRoom?.let { room ->
-                try {
+                if (!isActive || !isAdded || _binding == null) return@launch
+
+                currentChatRoom?.let { room ->
                     val searchResults = chatRepository.searchMessages(room.id, query)
-                    chatAdapter.submitList(searchResults)
-                } catch (e: Exception) {
+                    if (isActive && isAdded && _binding != null) {
+                        chatAdapter.submitList(searchResults)
+                    }
+                }
+            } catch (e: Exception) {
+                if (!isActive || !isAdded || _binding == null) return@launch
+                // Only show error if it's not a cancellation
+                if (e.message?.contains("cancelled", ignoreCase = true) != true) {
                     showError("Error searching messages: ${e.message}")
                 }
             }
@@ -278,6 +326,7 @@ class ChatFragmentAdmin : Fragment() {
             // Set typing status to true
             lifecycleScope.launch {
                 try {
+                    if (!isActive || !isAdded || _binding == null) return@launch
                     chatRepository.setTypingStatus(room.id, true)
                 } catch (e: Exception) {
                     // Silently handle typing status errors
@@ -286,8 +335,9 @@ class ChatFragmentAdmin : Fragment() {
 
             // Set typing status to false after 2 seconds of inactivity
             typingJob = lifecycleScope.launch {
-                delay(TYPING_DELAY)
                 try {
+                    delay(TYPING_DELAY)
+                    if (!isActive || !isAdded || _binding == null) return@launch
                     chatRepository.setTypingStatus(room.id, false)
                 } catch (e: Exception) {
                     // Silently handle typing status errors
@@ -300,6 +350,7 @@ class ChatFragmentAdmin : Fragment() {
         currentChatRoom?.let { room ->
             lifecycleScope.launch {
                 try {
+                    if (!isActive || !isAdded || _binding == null) return@launch
                     // Admin marks messages as read with current user ID
                     com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid?.let { adminId ->
                         chatRepository.markMessagesAsRead(room.id, adminId)
@@ -312,15 +363,18 @@ class ChatFragmentAdmin : Fragment() {
     }
 
     private fun showChatInterface(show: Boolean) {
+        if (_binding == null) return
         binding.layoutChatInterface.visibility = if (show) View.VISIBLE else View.GONE
         binding.layoutChatRoomsList.visibility = if (show) View.GONE else View.VISIBLE
     }
 
     private fun showLoading(show: Boolean) {
+        if (_binding == null) return
         binding.progressBar.visibility = if (show) View.VISIBLE else View.GONE
     }
 
     private fun showError(message: String) {
+        if (_binding == null || !isAdded) return
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 

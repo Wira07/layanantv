@@ -36,7 +36,7 @@
                         android:layout_width="80dp"
                         android:layout_height="80dp"
                         android:layout_marginBottom="16dp"
-                        android:src="@drawable/ic_admin"
+                        android:src="@drawable/logo_bg"
                         android:contentDescription="Admin Icon" />
 
                     <TextView

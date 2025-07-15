@@ -160,7 +160,7 @@ class OrderManagementActivity : AppCompatActivity() {
                     "Channel: ${order.channelName}\n" +
                     "Pelanggan: ${order.userName}\n" +
                     "Email: ${order.userEmail}\n" +
-                    "Jumlah: Rp ${String.format("%,d", order.totalAmount)}\n" +
+                    "Jumlah: Rp ${String.format("%,.0f", order.totalAmount)}\n" +
                     "Metode: ${order.paymentMethod}")
             .setItems(colors) { _, which ->
                 when (which) {
@@ -230,7 +230,7 @@ class OrderManagementActivity : AppCompatActivity() {
                     "Channel: ${order.channelName}\n" +
                     "Tipe: ${order.subscriptionType}\n" +
                     "Pembayaran: ${order.paymentMethod}\n" +
-                    "Jumlah: Rp ${String.format("%,d", order.totalAmount)}\n" +
+                    "Jumlah: Rp ${String.format("%,.0f", order.totalAmount)}\n" +
                     "Status Pembayaran: $paymentStatus\n" +
                     "Catatan: $notes")
             .setPositiveButton("Tutup", null)

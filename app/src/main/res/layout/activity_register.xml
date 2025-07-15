@@ -20,7 +20,7 @@
             android:layout_height="100dp"
             android:layout_marginBottom="24dp"
             android:layout_marginTop="32dp"
-            android:src="@drawable/ic_tv_logo"
+            android:src="@drawable/logo_bg"
             android:contentDescription="TV Channel Logo" />
 
         <TextView
