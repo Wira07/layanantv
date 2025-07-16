@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.activity.result.contract.ActivityResultContracts
 import com.ali.layanantv.R
 import com.ali.layanantv.data.repository.CustomerRepository
 import com.ali.layanantv.databinding.FragmentHomeBinding
@@ -22,6 +23,16 @@ class HomeFragment : Fragment() {
 
     private lateinit var customerRepository: CustomerRepository
     private var dashboardJob: Job? = null
+
+    // Activity Result Launcher untuk menangani result dari ChannelBrowserActivity
+    private val channelBrowserLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            // Jika berhasil berlangganan, pindah ke SubscriptionsFragment
+            (activity as? CustomerDashboardActivity)?.navigateToSubscriptions()
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -43,7 +54,8 @@ class HomeFragment : Fragment() {
         binding?.let { binding ->
             // Setup click listeners for main features
             binding.btnBrowseChannels.setOnClickListener {
-                startActivity(Intent(requireContext(), ChannelBrowserActivity::class.java))
+                val intent = Intent(requireContext(), ChannelBrowserActivity::class.java)
+                channelBrowserLauncher.launch(intent)
             }
 
             binding.btnMySubscriptions.setOnClickListener {
@@ -74,19 +86,20 @@ class HomeFragment : Fragment() {
     private fun setupPromoSectionClickListener() {
         binding?.let { binding ->
             // Add click listener to the "Mulai Berlangganan" button
-//            val startSubscriptionButton = binding.root.findViewById<View>(R.id.btn_start_subscription)
-//            startSubscriptionButton?.setOnClickListener {
-//                // Navigate to ChannelBrowserActivity to let user choose a channel first
-//                startActivity(Intent(requireContext(), ChannelBrowserActivity::class.java))
-//            }
-
-            // Alternative: If you want to navigate directly to PaymentActivity with a default channel
-            // Uncomment the code below and modify as needed:
-            /*
+            val startSubscriptionButton = binding.root.findViewById<View>(R.id.btn_start_subscription)
             startSubscriptionButton?.setOnClickListener {
-                navigateToPaymentActivity("default_channel_id")
+                // Navigate to ChannelBrowserActivity dan tunggu hasilnya
+                val intent = Intent(requireContext(), ChannelBrowserActivity::class.java)
+                channelBrowserLauncher.launch(intent)
             }
-            */
+
+            // Alternative: Make entire promo card clickable if button is not available
+            val promoCard = binding.root.findViewById<androidx.cardview.widget.CardView>(R.id.promo_card)
+            promoCard?.setOnClickListener {
+                // Navigate to ChannelBrowserActivity dan tunggu hasilnya
+                val intent = Intent(requireContext(), ChannelBrowserActivity::class.java)
+                channelBrowserLauncher.launch(intent)
+            }
         }
     }
 
@@ -96,6 +109,26 @@ class HomeFragment : Fragment() {
             putExtra(PaymentActivity.EXTRA_SUBSCRIPTION_TYPE, "1_month")
         }
         startActivity(intent)
+    }
+
+    // NEW: Method untuk navigasi ke Payment dengan callback
+    private fun navigateToPaymentActivityWithCallback(channelId: String = "default_channel_id") {
+        val intent = Intent(requireContext(), PaymentActivity::class.java).apply {
+            putExtra(PaymentActivity.EXTRA_CHANNEL_ID, channelId)
+            putExtra(PaymentActivity.EXTRA_SUBSCRIPTION_TYPE, "1_month")
+        }
+
+        // Gunakan launcher untuk menangani hasil payment
+        val paymentLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == android.app.Activity.RESULT_OK) {
+                // Jika payment berhasil, pindah ke SubscriptionsFragment
+                (activity as? CustomerDashboardActivity)?.navigateToSubscriptions()
+            }
+        }
+
+        paymentLauncher.launch(intent)
     }
 
     // NEW: Method untuk navigasi ke QRIS Payment Proof
@@ -166,8 +199,9 @@ class HomeFragment : Fragment() {
                     .setMessage("Anda memiliki $userPoints point.\n\nPoint dapat digunakan untuk mengurangi harga pembayaran:\n• 1 Point = Rp 1\n• Minimal penggunaan: 100 point\n• Maksimal penggunaan: 50% dari total harga\n\nGunakan point Anda saat melakukan pembayaran langganan!")
                     .setPositiveButton("Mengerti", null)
                     .setNegativeButton("Mulai Berlangganan") { _, _ ->
-                        // Navigate to channel browser when user wants to start subscription
-                        startActivity(Intent(requireContext(), ChannelBrowserActivity::class.java))
+                        // Navigate to channel browser dengan callback
+                        val intent = Intent(requireContext(), ChannelBrowserActivity::class.java)
+                        channelBrowserLauncher.launch(intent)
                     }
                     .show()
             }

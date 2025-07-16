@@ -416,12 +416,16 @@
 
         <!-- Premium Promo Section -->
         <androidx.cardview.widget.CardView
+            android:id="@+id/promo_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="20dp"
             app:cardElevation="8dp"
-            app:cardUseCompatPadding="true">
+            app:cardUseCompatPadding="true"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -516,6 +520,20 @@
                             android:alpha="0.7"/>
 
                     </LinearLayout>
+
+                    <!-- Button for subscription -->
+                    <Button
+                        android:id="@+id/btn_start_subscription"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mulai Berlangganan"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_color"
+                        android:background="@drawable/btn_reject"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp"
+                        android:layout_marginStart="12dp" />
 
                 </LinearLayout>
 

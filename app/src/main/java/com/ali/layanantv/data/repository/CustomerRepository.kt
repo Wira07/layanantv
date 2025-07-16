@@ -215,10 +215,66 @@ class CustomerRepository {
 
     // Create new order
     suspend fun createOrder(order: Order): String {
-        Log.d(TAG, "Creating order for channel: ${order.channelName}")
-        val docRef = firestore.collection("orders").add(order).await()
-        Log.d(TAG, "Order created with ID: ${docRef.id}")
-        return docRef.id
+        try {
+            Log.d(TAG, "Creating order for channel: ${order.channelName}")
+
+            // Validasi user authentication
+            val currentUser = auth.currentUser
+            if (currentUser == null) {
+                Log.e(TAG, "User not authenticated")
+                throw SecurityException("User not authenticated")
+            }
+
+            // Validasi bahwa order.userId sama dengan current user
+            if (order.userId != currentUser.uid) {
+                Log.e(TAG, "User ID mismatch: order.userId=${order.userId}, currentUser.uid=${currentUser.uid}")
+                throw SecurityException("User ID mismatch")
+            }
+
+            // Pastikan order memiliki semua field yang diperlukan
+            val orderData = hashMapOf(
+                "userId" to order.userId,
+                "channelId" to order.channelId,
+                "channelName" to order.channelName,
+                "subscriptionType" to order.subscriptionType,
+                "totalAmount" to order.totalAmount,
+                "status" to "pending", // Sesuai dengan validasi di rules: isValidOrderStatus
+                "createdAt" to Timestamp.now(),
+                "updatedAt" to Timestamp.now()
+            )
+
+            // Tambahkan field opsional jika ada
+            if (order.paymentMethod.isNotEmpty()) {
+                orderData["paymentMethod"] = order.paymentMethod
+            }
+
+            Log.d(TAG, "Creating order with data: $orderData")
+
+            val docRef = firestore.collection("orders").add(orderData).await()
+            Log.d(TAG, "Order created with ID: ${docRef.id}")
+
+            return docRef.id
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating order: ${e.message}", e)
+
+            when {
+                e.message?.contains("PERMISSION_DENIED") == true -> {
+                    throw SecurityException("Permission denied: Make sure you are authenticated and have proper permissions")
+                }
+                e.message?.contains("INVALID_ARGUMENT") == true -> {
+                    throw IllegalArgumentException("Invalid order data: ${e.message}")
+                }
+                e.message?.contains("UNAUTHENTICATED") == true -> {
+                    throw SecurityException("User not authenticated")
+                }
+                e is SecurityException -> {
+                    throw e
+                }
+                else -> {
+                    throw Exception("Failed to create order: ${e.message}")
+                }
+            }
+        }
     }
 
     // Create subscription record when order is completed
@@ -228,78 +284,127 @@ class CustomerRepository {
             Log.d(TAG, "Creating subscription for order: ${order.id}")
             Log.d(TAG, "Order details: userId=${order.userId}, channelId=${order.channelId}, channelName=${order.channelName}, status=${order.status}")
 
+            // Validasi user authentication
+            val currentUser = auth.currentUser
+            if (currentUser == null) {
+                Log.e(TAG, "User not authenticated")
+                throw SecurityException("User not authenticated")
+            }
+
+            // Validasi bahwa order.userId sama dengan current user
+            if (order.userId != currentUser.uid) {
+                Log.e(TAG, "User ID mismatch: order.userId=${order.userId}, currentUser.uid=${currentUser.uid}")
+                throw SecurityException("User ID mismatch")
+            }
+
             // Pastikan order memiliki data yang lengkap
             if (order.userId.isEmpty() || order.channelId.isEmpty() || order.channelName.isNullOrEmpty()) {
                 Log.e(TAG, "Order data incomplete: userId=${order.userId}, channelId=${order.channelId}, channelName=${order.channelName}")
                 throw IllegalArgumentException("Order data is incomplete")
             }
 
+            // Validasi subscriptionType
+            if (order.subscriptionType.isEmpty()) {
+                Log.e(TAG, "Subscription type is empty")
+                throw IllegalArgumentException("Subscription type is required")
+            }
+
             // Check if subscription already exists
             val existingSubscription = firestore.collection("subscriptions")
                 .whereEqualTo("userId", order.userId)
                 .whereEqualTo("channelId", order.channelId)
-                .whereEqualTo("isActive", true)
+                .whereEqualTo("status", "active")
                 .get()
                 .await()
 
             if (existingSubscription.documents.isNotEmpty()) {
-                Log.w(TAG, "Subscription already exists for user ${order.userId} and channel ${order.channelId}")
+                Log.w(TAG, "Active subscription already exists for user ${order.userId} and channel ${order.channelId}")
 
                 // Update existing subscription instead of creating new one
                 val existingDoc = existingSubscription.documents.first()
+                val updateData = mapOf(
+                    "orderId" to order.id,
+                    "totalAmount" to order.totalAmount,
+                    "subscriptionType" to order.subscriptionType,
+                    "updatedAt" to Timestamp.now()
+                )
+
                 firestore.collection("subscriptions")
                     .document(existingDoc.id)
-                    .update(
-                        mapOf(
-                            "orderId" to order.id,
-                            "totalAmount" to order.totalAmount,
-                            "subscriptionType" to order.subscriptionType,
-                            "updatedAt" to Timestamp.now()
-                        )
-                    )
+                    .update(updateData)
                     .await()
 
                 Log.d(TAG, "Updated existing subscription with new order data")
                 return
             }
 
-            // Create new subscription
+            // Create new subscription dengan semua field yang diperlukan sesuai rules
             val subscription = hashMapOf(
                 "userId" to order.userId,
                 "channelId" to order.channelId,
                 "channelName" to order.channelName,
                 "subscriptionType" to order.subscriptionType,
                 "totalAmount" to order.totalAmount,
-                "orderId" to order.id,
-                "isActive" to true,
-                "status" to "active",
-                "createdAt" to Timestamp.now(),
-                "updatedAt" to Timestamp.now()
+                "status" to "active", // Sesuai dengan validasi di rules: isValidSubscriptionStatus
+                "createdAt" to Timestamp.now()
             )
 
+            // Tambahkan field opsional jika ada
+            if (order.id.isNotEmpty()) {
+                subscription["orderId"] = order.id
+            }
+
+            Log.d(TAG, "Creating subscription with data: $subscription")
+
+            // Buat subscription baru
             val docRef = firestore.collection("subscriptions").add(subscription).await()
             Log.d(TAG, "Subscription created successfully with ID: ${docRef.id}")
 
-            // Update order status to ensure it's completed
+            // Update order status hanya jika order.id tidak kosong
             if (order.id.isNotEmpty()) {
-                val updateData = mapOf(
-                    "status" to "completed",
-                    "paymentVerified" to true,
-                    "updatedAt" to Timestamp.now()
-                )
+                try {
+                    val updateData = mapOf(
+                        "status" to "completed",
+                        "updatedAt" to Timestamp.now()
+                    )
 
-                firestore.collection("orders")
-                    .document(order.id)
-                    .update(updateData)
-                    .await()
-                Log.d(TAG, "Order status updated to completed with paymentVerified=true")
+                    firestore.collection("orders")
+                        .document(order.id)
+                        .update(updateData)
+                        .await()
+                    Log.d(TAG, "Order status updated to completed")
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to update order status, but subscription was created successfully: ${e.message}")
+                    // Tidak throw error karena subscription sudah berhasil dibuat
+                }
             }
 
-            Log.d(TAG, "Successfully created subscription and updated order")
+            Log.d(TAG, "Successfully created subscription")
 
         } catch (e: Exception) {
             Log.e(TAG, "Error creating subscription: ${e.message}", e)
-            throw e // Re-throw to be handled by caller
+
+            // Berikan error message yang lebih spesifik
+            when {
+                e.message?.contains("PERMISSION_DENIED") == true -> {
+                    throw SecurityException("Permission denied: Make sure you are authenticated and have proper permissions")
+                }
+                e.message?.contains("INVALID_ARGUMENT") == true -> {
+                    throw IllegalArgumentException("Invalid subscription data: ${e.message}")
+                }
+                e.message?.contains("UNAUTHENTICATED") == true -> {
+                    throw SecurityException("User not authenticated")
+                }
+                e is SecurityException -> {
+                    throw e
+                }
+                e is IllegalArgumentException -> {
+                    throw e
+                }
+                else -> {
+                    throw Exception("Failed to create subscription: ${e.message}")
+                }
+            }
         }
     }
 

@@ -1,5 +1,6 @@
 package com.ali.layanantv.ui.customer
 
+import android.content.Intent
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -54,16 +55,31 @@ class ChannelBrowserAdapter(
                 // Load channel logo with improved error handling
                 loadChannelLogo(channel)
 
-                // Set click listeners
+                // Set click listener for card (for viewing details)
                 root.setOnClickListener {
                     Log.d(TAG, "Channel card clicked: ${channel.name}")
                     onChannelClick(channel)
                 }
 
+                // Set click listener for subscribe button (direct to payment)
                 btnSubscribe.setOnClickListener {
                     Log.d(TAG, "Subscribe button clicked: ${channel.name}")
-                    onChannelClick(channel)
+                    navigateToPayment(channel)
                 }
+            }
+        }
+
+        private fun navigateToPayment(channel: Channel) {
+            try {
+                val context = binding.root.context
+                val intent = Intent(context, PaymentActivity::class.java).apply {
+                    putExtra(PaymentActivity.EXTRA_CHANNEL_ID, channel.id)
+                    putExtra(PaymentActivity.EXTRA_SUBSCRIPTION_TYPE, "1_month") // Default subscription type
+                }
+                context.startActivity(intent)
+                Log.d(TAG, "Navigating to PaymentActivity for channel: ${channel.name}")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error navigating to PaymentActivity: ${e.message}", e)
             }
         }
 
