@@ -10,6 +10,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.firestore.FieldValue
 import kotlinx.coroutines.tasks.await
 
 class CustomerRepository {
@@ -19,6 +20,135 @@ class CustomerRepository {
     companion object {
         private const val TAG = "CustomerRepository"
     }
+
+    // Method untuk mengurangi points user setelah digunakan untuk pembayaran
+    suspend fun deductUserPoints(pointsToDeduct: Int): Boolean {
+        val currentUser = auth.currentUser ?: return false
+
+        return try {
+            Log.d(TAG, "Deducting $pointsToDeduct points from user: ${currentUser.uid}")
+
+            // Ambil data user terlebih dahulu untuk validasi
+            val userSnapshot = firestore.collection("users")
+                .document(currentUser.uid)
+                .get()
+                .await()
+
+            val currentPoints = userSnapshot.getLong("points")?.toInt() ?: 0
+
+            if (currentPoints < pointsToDeduct) {
+                Log.e(TAG, "Insufficient points. Current: $currentPoints, Required: $pointsToDeduct")
+                return false
+            }
+
+            // Kurangi points menggunakan FieldValue.increment untuk atomic operation
+            firestore.collection("users")
+                .document(currentUser.uid)
+                .update(
+                    mapOf(
+                        "points" to FieldValue.increment(-pointsToDeduct.toLong()),
+                        "updatedAt" to Timestamp.now()
+                    )
+                )
+                .await()
+
+            Log.d(TAG, "Successfully deducted $pointsToDeduct points from user")
+
+            // Tambahkan record ke point transaction history
+            recordPointTransaction(currentUser.uid, pointsToDeduct, "deduction", "Used for payment")
+
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deducting user points: ${e.message}", e)
+            e.printStackTrace()
+            false
+        }
+    }
+
+    // Method untuk menambah points user (untuk reward, refund, dll)
+    suspend fun addUserPoints(pointsToAdd: Int, reason: String = "Reward"): Boolean {
+        val currentUser = auth.currentUser ?: return false
+
+        return try {
+            Log.d(TAG, "Adding $pointsToAdd points to user: ${currentUser.uid}")
+
+            // Tambah points menggunakan FieldValue.increment untuk atomic operation
+            firestore.collection("users")
+                .document(currentUser.uid)
+                .update(
+                    mapOf(
+                        "points" to FieldValue.increment(pointsToAdd.toLong()),
+                        "updatedAt" to Timestamp.now()
+                    )
+                )
+                .await()
+
+            Log.d(TAG, "Successfully added $pointsToAdd points to user")
+
+            // Tambahkan record ke point transaction history
+            recordPointTransaction(currentUser.uid, pointsToAdd, "addition", reason)
+
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error adding user points: ${e.message}", e)
+            e.printStackTrace()
+            false
+        }
+    }
+
+    // Method untuk mencatat transaksi point
+    private suspend fun recordPointTransaction(userId: String, points: Int, type: String, reason: String) {
+        try {
+            Log.d(TAG, "Recording point transaction: user=$userId, points=$points, type=$type")
+
+            val transaction = hashMapOf(
+                "userId" to userId,
+                "points" to points,
+                "type" to type, // "addition" or "deduction"
+                "reason" to reason,
+                "createdAt" to Timestamp.now()
+            )
+
+            firestore.collection("point_transactions")
+                .add(transaction)
+                .await()
+
+            Log.d(TAG, "Point transaction recorded successfully")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error recording point transaction: ${e.message}", e)
+            // Tidak throw error karena ini bukan critical operation
+        }
+    }
+
+    // Method untuk mendapatkan riwayat transaksi point user
+    suspend fun getPointTransactionHistory(limit: Int = 20): List<Map<String, Any>> {
+        val currentUser = auth.currentUser ?: return emptyList()
+
+        return try {
+            Log.d(TAG, "Getting point transaction history for user: ${currentUser.uid}")
+
+            val snapshot = firestore.collection("point_transactions")
+                .whereEqualTo("userId", currentUser.uid)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .limit(limit.toLong())
+                .get()
+                .await()
+
+            val transactions = snapshot.documents.mapNotNull { doc ->
+                val data = doc.data
+                if (data != null) {
+                    data.plus("id" to doc.id)
+                } else null
+            }
+
+            Log.d(TAG, "Found ${transactions.size} point transactions")
+            transactions
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting point transaction history: ${e.message}", e)
+            emptyList()
+        }
+    }
+
 
     // Get all active channels
     suspend fun getActiveChannels(): List<Channel> {
@@ -540,18 +670,98 @@ class CustomerRepository {
         }
     }
 
-    // Method untuk cancel subscription
+    // Method untuk cancel subscription - PERBAIKAN
     suspend fun cancelSubscription(subscriptionId: String) {
         try {
             Log.d(TAG, "Cancelling subscription: $subscriptionId")
-            firestore.collection("subscriptions")
+
+            // Coba update di collection subscriptions
+            val subscriptionDoc = firestore.collection("subscriptions")
                 .document(subscriptionId)
-                .update("isActive", false, "updatedAt", Timestamp.now())
+                .get()
                 .await()
-            Log.d(TAG, "Subscription cancelled successfully")
+
+            if (subscriptionDoc.exists()) {
+                firestore.collection("subscriptions")
+                    .document(subscriptionId)
+                    .update(
+                        mapOf(
+                            "isActive" to false,
+                            "status" to "cancelled",
+                            "updatedAt" to Timestamp.now()
+                        )
+                    )
+                    .await()
+                Log.d(TAG, "Subscription updated in subscriptions collection")
+            }
+
+            // Coba update di collection orders juga
+            val orderDoc = firestore.collection("orders")
+                .document(subscriptionId)
+                .get()
+                .await()
+
+            if (orderDoc.exists()) {
+                firestore.collection("orders")
+                    .document(subscriptionId)
+                    .update(
+                        mapOf(
+                            "status" to "cancelled",
+                            "updatedAt" to Timestamp.now()
+                        )
+                    )
+                    .await()
+                Log.d(TAG, "Order updated in orders collection")
+            }
+
+            // Jika tidak ada di kedua collection, coba cari berdasarkan ID
+            if (!subscriptionDoc.exists() && !orderDoc.exists()) {
+                Log.w(TAG, "Subscription/Order not found with ID: $subscriptionId")
+
+                // Coba cari di orders berdasarkan user dan channel
+                val currentUser = auth.currentUser
+                if (currentUser != null) {
+                    val ordersQuery = firestore.collection("orders")
+                        .whereEqualTo("userId", currentUser.uid)
+                        .whereEqualTo("id", subscriptionId)
+                        .get()
+                        .await()
+
+                    if (ordersQuery.documents.isNotEmpty()) {
+                        val orderToCancel = ordersQuery.documents.first()
+                        firestore.collection("orders")
+                            .document(orderToCancel.id)
+                            .update(
+                                mapOf(
+                                    "status" to "cancelled",
+                                    "updatedAt" to Timestamp.now()
+                                )
+                            )
+                            .await()
+                        Log.d(TAG, "Found and cancelled order via query")
+                    }
+                }
+            }
+
+            Log.d(TAG, "Subscription cancellation completed successfully")
+
         } catch (e: Exception) {
             Log.e(TAG, "Error cancelling subscription: ${e.message}", e)
-            e.printStackTrace()
+            // Throw exception dengan pesan yang lebih informatif
+            when {
+                e.message?.contains("PERMISSION_DENIED") == true -> {
+                    throw Exception("PERMISSION_DENIED")
+                }
+                e.message?.contains("NOT_FOUND") == true -> {
+                    throw Exception("SUBSCRIPTION_NOT_FOUND")
+                }
+                e.message?.contains("UNAVAILABLE") == true -> {
+                    throw Exception("SERVICE_UNAVAILABLE")
+                }
+                else -> {
+                    throw Exception("CANCELLATION_FAILED: ${e.message}")
+                }
+            }
         }
     }
 

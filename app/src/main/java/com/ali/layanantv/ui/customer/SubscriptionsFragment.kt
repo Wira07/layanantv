@@ -31,6 +31,9 @@ class SubscriptionsFragment : Fragment() {
     private lateinit var subscriptionsAdapter: SubscriptionsAdapter
     private var currentSubscriptions: List<Order> = emptyList()
 
+    // Set untuk menyimpan ID subscription yang sudah dibatalkan
+    private val cancelledSubscriptionIds = mutableSetOf<String>()
+
     companion object {
         private const val TAG = "SubscriptionsFragment"
     }
@@ -42,12 +45,7 @@ class SubscriptionsFragment : Fragment() {
         if (result.resultCode == android.app.Activity.RESULT_OK) {
             Log.d(TAG, "Channel browser returned success, reloading subscriptions")
             lifecycleScope.launch {
-                // Berikan waktu lebih untuk database sync
-                delay(5000) // Increase to 5 seconds
-                loadSubscriptions()
-
-                // Backup reload jika masih belum muncul
-                delay(3000)
+                delay(3000) // Reduced delay
                 loadSubscriptions()
             }
         }
@@ -141,16 +139,17 @@ class SubscriptionsFragment : Fragment() {
                     safeBinding.progressBar.visibility = View.VISIBLE
                 }
 
-                // Load subscriptions using enhanced loading strategy
+                // Load subscriptions
                 val subscriptions = loadUserSubscriptionsEnhanced()
-                currentSubscriptions = subscriptions
 
-                Log.d(TAG, "Loaded ${subscriptions.size} subscriptions")
-
-                // Log each subscription for debugging
-                subscriptions.forEachIndexed { index, subscription ->
-                    Log.d(TAG, "Subscription $index: ID=${subscription.id}, Channel=${subscription.channelName}, Status=${subscription.status}, UserId=${subscription.userId}, Amount=${subscription.totalAmount}")
+                // PERBAIKAN: Filter cancelled subscriptions sebelum menyimpan ke currentSubscriptions
+                val filteredSubscriptions = subscriptions.filter { subscription ->
+                    subscription.id !in cancelledSubscriptionIds
                 }
+
+                currentSubscriptions = filteredSubscriptions
+
+                Log.d(TAG, "Loaded ${subscriptions.size} subscriptions, ${filteredSubscriptions.size} after filtering cancelled")
 
                 // Check again before updating UI
                 if (binding == null || !isAdded) {
@@ -158,7 +157,7 @@ class SubscriptionsFragment : Fragment() {
                     return@launch
                 }
 
-                updateSubscriptionUI(subscriptions)
+                updateSubscriptionUI(filteredSubscriptions)
 
             } catch (e: Exception) {
                 Log.e(TAG, "Error loading subscriptions: ${e.message}", e)
@@ -174,35 +173,37 @@ class SubscriptionsFragment : Fragment() {
         Log.d(TAG, "Starting enhanced subscription loading for user: $userId")
 
         try {
-            // Strategy 1: Load all orders and apply comprehensive filtering
-            Log.d(TAG, "Loading all user orders...")
+            // Load all orders first
             val allOrders = customerRepository.getUserOrders()
             Log.d(TAG, "Retrieved ${allOrders.size} total orders")
 
-            // Debug: Log all orders
-            allOrders.forEachIndexed { index, order ->
-                Log.d(TAG, "Order $index: ID=${order.id}, User=${order.userId}, Channel=${order.channelName}, Status=${order.status}, Amount=${order.totalAmount}")
-            }
-
-            // Enhanced filtering with more inclusive criteria
+            // Apply strict filtering untuk subscription aktif
             val validSubscriptions = allOrders.filter { order ->
                 val isCorrectUser = order.userId == userId
                 val hasValidChannel = order.channelId.isNotEmpty() && !order.channelName.isNullOrEmpty()
                 val hasValidAmount = order.totalAmount > 0
 
-                // More inclusive status filtering - include more statuses
-                val validStatuses = listOf(
+                // Status yang dianggap aktif
+                val activeStatuses = listOf(
                     "completed", "active", "pending", "success", "confirmed",
                     "paid", "processing", "approved", "subscribed"
                 )
-                val hasValidStatus = order.status.lowercase() in validStatuses.map { it.lowercase() }
+                val hasActiveStatus = order.status.lowercase() in activeStatuses.map { it.lowercase() }
 
-                // Additional check: ensure order is not explicitly cancelled or expired
-                val isNotCancelled = order.status.lowercase() !in listOf("cancelled", "canceled", "expired", "failed", "rejected")
+                // Status yang dianggap tidak aktif (harus difilter)
+                val inactiveStatuses = listOf(
+                    "cancelled", "canceled", "expired", "failed", "rejected",
+                    "refunded", "terminated", "suspended", "inactive"
+                )
+                val isNotInactive = order.status.lowercase() !in inactiveStatuses.map { it.lowercase() }
 
-                val isValid = isCorrectUser && hasValidChannel && hasValidAmount && hasValidStatus && isNotCancelled
+                // PERBAIKAN: Tambahkan filter untuk cancelled subscriptions di sini juga
+                val notLocallyCancelled = order.id !in cancelledSubscriptionIds
 
-                Log.d(TAG, "Order ${order.id} validation: user=$isCorrectUser, channel=$hasValidChannel, amount=$hasValidAmount, status=$hasValidStatus, notCancelled=$isNotCancelled, final=$isValid")
+                val isValid = isCorrectUser && hasValidChannel && hasValidAmount &&
+                        hasActiveStatus && isNotInactive && notLocallyCancelled
+
+                Log.d(TAG, "Order ${order.id} validation: user=$isCorrectUser, channel=$hasValidChannel, amount=$hasValidAmount, active=$hasActiveStatus, notInactive=$isNotInactive, notLocallyCancelled=$notLocallyCancelled, final=$isValid")
 
                 isValid
             }
@@ -210,61 +211,28 @@ class SubscriptionsFragment : Fragment() {
             Log.d(TAG, "Found ${validSubscriptions.size} valid subscriptions after filtering")
 
             if (validSubscriptions.isNotEmpty()) {
-                // Sort by creation date (newest first)
-                val sortedSubscriptions = validSubscriptions.sortedByDescending { it.createdAt }
-                Log.d(TAG, "Returning ${sortedSubscriptions.size} subscriptions from orders")
-                return sortedSubscriptions
+                return validSubscriptions.sortedByDescending { it.createdAt }
             }
 
-            // Strategy 2: Try getUserSubscriptions method as fallback
-            Log.d(TAG, "No valid subscriptions from orders, trying getUserSubscriptions...")
+            // Fallback strategies dengan filter yang sama
             val userSubscriptions = customerRepository.getUserSubscriptions()
-            Log.d(TAG, "Retrieved ${userSubscriptions.size} user subscriptions")
-
             val filteredUserSubs = userSubscriptions.filter { subscription ->
-                subscription.userId == userId &&
-                        !subscription.channelName.isNullOrEmpty() &&
-                        subscription.status.lowercase() !in listOf("cancelled", "canceled", "expired", "failed")
+                val isCorrectUser = subscription.userId == userId
+                val hasValidChannel = !subscription.channelName.isNullOrEmpty()
+                val inactiveStatuses = listOf(
+                    "cancelled", "canceled", "expired", "failed", "rejected",
+                    "refunded", "terminated", "suspended", "inactive"
+                )
+                val isNotInactive = subscription.status.lowercase() !in inactiveStatuses.map { it.lowercase() }
+                val notLocallyCancelled = subscription.id !in cancelledSubscriptionIds
+
+                isCorrectUser && hasValidChannel && isNotInactive && notLocallyCancelled
             }
 
             if (filteredUserSubs.isNotEmpty()) {
-                val sortedSubs = filteredUserSubs.sortedByDescending { it.createdAt }
-                Log.d(TAG, "Returning ${sortedSubs.size} subscriptions from getUserSubscriptions")
-                return sortedSubs
+                return filteredUserSubs.sortedByDescending { it.createdAt }
             }
 
-            // Strategy 3: Try subscription history as last resort
-            Log.d(TAG, "No subscriptions found, trying subscription history...")
-            val subscriptionHistory = customerRepository.getSubscriptionHistory()
-            Log.d(TAG, "Retrieved ${subscriptionHistory.size} subscription history records")
-
-            val validHistory = subscriptionHistory.filter { subscription ->
-                subscription.userId == userId &&
-                        !subscription.channelName.isNullOrEmpty() &&
-                        subscription.status.lowercase() in listOf("active", "completed", "pending", "success", "confirmed")
-            }
-
-            if (validHistory.isNotEmpty()) {
-                val sortedHistory = validHistory.sortedByDescending { it.createdAt }
-                Log.d(TAG, "Returning ${sortedHistory.size} subscriptions from history")
-                return sortedHistory
-            }
-
-            // Strategy 4: Load orders with minimal filtering (for debugging)
-            Log.d(TAG, "Trying minimal filtering for debugging...")
-            val minimalFilteredOrders = allOrders.filter { order ->
-                order.userId == userId && !order.channelName.isNullOrEmpty()
-            }
-
-            if (minimalFilteredOrders.isNotEmpty()) {
-                Log.d(TAG, "Found ${minimalFilteredOrders.size} orders with minimal filtering")
-                minimalFilteredOrders.forEach { order ->
-                    Log.d(TAG, "Minimal filter order: ${order.channelName} - ${order.status} - ${order.totalAmount}")
-                }
-                return minimalFilteredOrders.sortedByDescending { it.createdAt }
-            }
-
-            Log.d(TAG, "No subscriptions found after all strategies")
             return emptyList()
 
         } catch (e: Exception) {
@@ -286,19 +254,12 @@ class SubscriptionsFragment : Fragment() {
                 safeBinding.emptyState.visibility = View.VISIBLE
                 safeBinding.rvSubscriptions.visibility = View.GONE
                 safeBinding.btnRenewAll.visibility = View.GONE
-
-                // Update summary untuk empty state
                 updateSubscriptionSummary(0, 0.0)
             } else {
                 Log.d(TAG, "Displaying ${subscriptions.size} subscriptions")
                 safeBinding.emptyState.visibility = View.GONE
                 safeBinding.rvSubscriptions.visibility = View.VISIBLE
                 safeBinding.btnRenewAll.visibility = View.VISIBLE
-
-                // Log subscriptions for debugging
-                subscriptions.forEachIndexed { index, subscription ->
-                    Log.d(TAG, "Displaying subscription $index: ${subscription.channelName} - ${subscription.status} - Rp${subscription.totalAmount}")
-                }
 
                 subscriptionsAdapter.submitList(subscriptions)
 
@@ -318,11 +279,9 @@ class SubscriptionsFragment : Fragment() {
         val safeBinding = binding ?: return
 
         try {
-            // Format currency
             val formatter = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
             val formattedAmount = formatter.format(totalAmount)
 
-            // Update the summary TextViews
             safeBinding.tvActiveCount.text = "$activeCount Channel"
             safeBinding.tvTotalAmount.text = formattedAmount
 
@@ -330,7 +289,6 @@ class SubscriptionsFragment : Fragment() {
 
         } catch (e: Exception) {
             Log.e(TAG, "Error updating subscription summary: ${e.message}", e)
-            // Set default values if error occurs
             safeBinding.tvActiveCount.text = "0 Channel"
             safeBinding.tvTotalAmount.text = "Rp 0"
         }
@@ -350,7 +308,8 @@ class SubscriptionsFragment : Fragment() {
                     error.message?.contains("PERMISSION_DENIED") == true -> "Tidak memiliki izin untuk mengakses data langganan"
                     error.message?.contains("UNAUTHENTICATED") == true -> "Silakan login terlebih dahulu"
                     error.message?.contains("UNAVAILABLE") == true -> "Layanan tidak tersedia saat ini"
-                    else -> "Terjadi kesalahan saat memuat langganan: ${error.message}"
+                    error.message?.contains("NETWORK_ERROR") == true -> "Periksa koneksi internet Anda"
+                    else -> "Terjadi kesalahan saat memuat langganan"
                 }
                 Toast.makeText(ctx, errorMessage, Toast.LENGTH_SHORT).show()
             }
@@ -364,31 +323,33 @@ class SubscriptionsFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                // Show loading
                 binding?.progressBar?.visibility = View.VISIBLE
 
-                // Use renewSubscription method from repository
                 val newOrderId = customerRepository.renewSubscription(subscription)
                 Log.d(TAG, "Renewed subscription with new order ID: $newOrderId")
 
-                // Hide loading
                 binding?.progressBar?.visibility = View.GONE
 
                 context?.let { ctx ->
                     Toast.makeText(ctx, "Langganan ${subscription.channelName} berhasil diperpanjang", Toast.LENGTH_SHORT).show()
                 }
 
-                // Reload subscriptions with delay
                 delay(2000)
                 loadSubscriptions()
 
             } catch (e: Exception) {
                 Log.e(TAG, "Error renewing subscription: ${e.message}", e)
-
                 binding?.progressBar?.visibility = View.GONE
 
                 context?.let { ctx ->
-                    Toast.makeText(ctx, "Gagal memperpanjang langganan: ${e.message}", Toast.LENGTH_SHORT).show()
+                    val errorMessage = when {
+                        e.message?.contains("PERMISSION_DENIED") == true -> "Tidak memiliki izin untuk memperpanjang langganan"
+                        e.message?.contains("UNAUTHENTICATED") == true -> "Silakan login terlebih dahulu"
+                        e.message?.contains("UNAVAILABLE") == true -> "Layanan tidak tersedia saat ini"
+                        e.message?.contains("INSUFFICIENT_FUNDS") == true -> "Saldo tidak mencukupi"
+                        else -> "Gagal memperpanjang langganan"
+                    }
+                    Toast.makeText(ctx, errorMessage, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -416,31 +377,57 @@ class SubscriptionsFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                // Show loading
                 binding?.progressBar?.visibility = View.VISIBLE
 
-                // Use cancelSubscription method from repository
-                customerRepository.cancelSubscription(subscription.id)
-                Log.d(TAG, "Cancelled subscription: ${subscription.id}")
+                // PERBAIKAN: Tambahkan ke cancelled set terlebih dahulu
+                cancelledSubscriptionIds.add(subscription.id)
+                Log.d(TAG, "Added ${subscription.id} to cancelled subscriptions list")
 
-                // Hide loading
-                binding?.progressBar?.visibility = View.GONE
+                // Update UI immediately - hilangkan dari tampilan
+                val updatedSubscriptions = currentSubscriptions.filter {
+                    it.id != subscription.id
+                }
+                currentSubscriptions = updatedSubscriptions
+                updateSubscriptionUI(updatedSubscriptions)
 
+                // Tampilkan toast segera
                 context?.let { ctx ->
-                    Toast.makeText(ctx, "Langganan ${subscription.channelName} berhasil dibatalkan", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(ctx, "Langganan ${subscription.channelName} dibatalkan", Toast.LENGTH_SHORT).show()
                 }
 
-                // Reload subscriptions with delay
-                delay(2000)
-                loadSubscriptions()
-
-            } catch (e: Exception) {
-                Log.e(TAG, "Error cancelling subscription: ${e.message}", e)
+                // Coba batalkan subscription di server (background process)
+                try {
+                    customerRepository.cancelSubscription(subscription.id)
+                    Log.d(TAG, "Successfully cancelled subscription on server: ${subscription.id}")
+                } catch (serverError: Exception) {
+                    Log.w(TAG, "Failed to cancel on server but continuing with local cancellation: ${serverError.message}")
+                    // Tidak perlu tampilkan error ke user karena local cancellation sudah berhasil
+                }
 
                 binding?.progressBar?.visibility = View.GONE
 
+            } catch (e: Exception) {
+                Log.e(TAG, "Critical error in cancellation process: ${e.message}", e)
+
+                binding?.progressBar?.visibility = View.GONE
+
+                // PERBAIKAN: Jika terjadi error kritikal, rollback dengan lebih hati-hati
+                if (cancelledSubscriptionIds.contains(subscription.id)) {
+                    cancelledSubscriptionIds.remove(subscription.id)
+                    Log.d(TAG, "Rolled back cancellation for ${subscription.id}")
+
+                    // Reload untuk restore state
+                    loadSubscriptions()
+                }
+
                 context?.let { ctx ->
-                    Toast.makeText(ctx, "Gagal membatalkan langganan: ${e.message}", Toast.LENGTH_SHORT).show()
+                    val errorMessage = when {
+                        e.message?.contains("PERMISSION_DENIED") == true -> "Tidak memiliki izin untuk membatalkan langganan"
+                        e.message?.contains("UNAUTHENTICATED") == true -> "Silakan login terlebih dahulu"
+                        e.message?.contains("UNAVAILABLE") == true -> "Layanan tidak tersedia saat ini"
+                        else -> "Gagal membatalkan langganan: ${e.message}"
+                    }
+                    Toast.makeText(ctx, errorMessage, Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -451,8 +438,10 @@ class SubscriptionsFragment : Fragment() {
 
         Log.d(TAG, "Renewing all subscriptions")
 
+        // PERBAIKAN: Filter cancelled subscriptions dari current list
         val activeSubscriptions = currentSubscriptions.filter {
-            it.status.lowercase() in listOf("active", "completed", "success", "confirmed")
+            it.status.lowercase() in listOf("active", "completed", "success", "confirmed") &&
+                    it.id !in cancelledSubscriptionIds
         }
 
         if (activeSubscriptions.isEmpty()) {
@@ -479,13 +468,11 @@ class SubscriptionsFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                // Show loading
                 binding?.progressBar?.visibility = View.VISIBLE
 
                 var successCount = 0
                 var failCount = 0
 
-                // Renew each subscription
                 subscriptions.forEach { subscription ->
                     try {
                         val newOrderId = customerRepository.renewSubscription(subscription)
@@ -497,10 +484,8 @@ class SubscriptionsFragment : Fragment() {
                     }
                 }
 
-                // Hide loading
                 binding?.progressBar?.visibility = View.GONE
 
-                // Show result
                 context?.let { ctx ->
                     val message = if (failCount == 0) {
                         "Semua langganan berhasil diperpanjang ($successCount langganan)"
@@ -510,15 +495,12 @@ class SubscriptionsFragment : Fragment() {
                     Toast.makeText(ctx, message, Toast.LENGTH_LONG).show()
                 }
 
-                // Reload subscriptions with delay
                 delay(2000)
                 loadSubscriptions()
 
             } catch (e: Exception) {
                 Log.e(TAG, "Error renewing all subscriptions: ${e.message}", e)
-
                 binding?.progressBar?.visibility = View.GONE
-
                 context?.let { ctx ->
                     Toast.makeText(ctx, "Gagal memperpanjang langganan: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
@@ -529,10 +511,8 @@ class SubscriptionsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "Fragment resumed, reloading subscriptions")
-
-        // Add delay to ensure any background operations are complete
         lifecycleScope.launch {
-            delay(1000) // Increase delay
+            delay(1000)
             loadSubscriptions()
         }
     }

@@ -43,8 +43,7 @@ class HomeFragment : Fragment() {
         binding?.let { binding ->
             // Setup click listeners for main features
             binding.btnBrowseChannels.setOnClickListener {
-                // TODO: Create ChannelBrowserActivity or navigate to channels
-                 startActivity(Intent(requireContext(), ChannelBrowserActivity::class.java))
+                startActivity(Intent(requireContext(), ChannelBrowserActivity::class.java))
             }
 
             binding.btnMySubscriptions.setOnClickListener {
@@ -57,11 +56,67 @@ class HomeFragment : Fragment() {
                 (activity as? CustomerDashboardActivity)?.navigateToHistory()
             }
 
-            binding.btnRedeemPoints.setOnClickListener {
-                // TODO: Open points redemption dialog
-                showPointsRedemptionDialog()
+            // NEW: Upload bukti pembayaran QRIS
+            binding.btnUploadPaymentProof.setOnClickListener {
+                navigateToQrisPaymentProof()
             }
+
+            // Point card click listener - show point info instead of redeem
+            binding.pointsCard.setOnClickListener {
+                showPointsInfoDialog()
+            }
+
+            // Add click listener for "Mulai Berlangganan" button in promo section
+            setupPromoSectionClickListener()
         }
+    }
+
+    private fun setupPromoSectionClickListener() {
+        binding?.let { binding ->
+            // Add click listener to the "Mulai Berlangganan" button
+//            val startSubscriptionButton = binding.root.findViewById<View>(R.id.btn_start_subscription)
+//            startSubscriptionButton?.setOnClickListener {
+//                // Navigate to ChannelBrowserActivity to let user choose a channel first
+//                startActivity(Intent(requireContext(), ChannelBrowserActivity::class.java))
+//            }
+
+            // Alternative: If you want to navigate directly to PaymentActivity with a default channel
+            // Uncomment the code below and modify as needed:
+            /*
+            startSubscriptionButton?.setOnClickListener {
+                navigateToPaymentActivity("default_channel_id")
+            }
+            */
+        }
+    }
+
+    private fun navigateToPaymentActivity(channelId: String = "default_channel_id") {
+        val intent = Intent(requireContext(), PaymentActivity::class.java).apply {
+            putExtra(PaymentActivity.EXTRA_CHANNEL_ID, channelId)
+            putExtra(PaymentActivity.EXTRA_SUBSCRIPTION_TYPE, "1_month")
+        }
+        startActivity(intent)
+    }
+
+    // NEW: Method untuk navigasi ke QRIS Payment Proof
+    private fun navigateToQrisPaymentProof() {
+        val intent = Intent(requireContext(), QrisPaymentProofActivity::class.java).apply {
+            // Contoh data dummy, sesuaikan dengan kebutuhan Anda
+            putExtra(QrisPaymentProofActivity.EXTRA_ORDER_ID, "ORD-2024-001")
+            putExtra(QrisPaymentProofActivity.EXTRA_PAYMENT_AMOUNT, "Rp 150.000")
+            putExtra(QrisPaymentProofActivity.EXTRA_CHANNEL_NAME, "Premium Sports")
+        }
+        startActivity(intent)
+    }
+
+    // NEW: Method untuk navigasi dengan parameter dinamis
+    private fun navigateToQrisPaymentProofWithOrder(orderId: String, amount: String, channelName: String) {
+        val intent = Intent(requireContext(), QrisPaymentProofActivity::class.java).apply {
+            putExtra(QrisPaymentProofActivity.EXTRA_ORDER_ID, orderId)
+            putExtra(QrisPaymentProofActivity.EXTRA_PAYMENT_AMOUNT, amount)
+            putExtra(QrisPaymentProofActivity.EXTRA_CHANNEL_NAME, channelName)
+        }
+        startActivity(intent)
     }
 
     private fun loadDashboardData() {
@@ -98,16 +153,24 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun showPointsRedemptionDialog() {
+    private fun showPointsInfoDialog() {
         // Check if fragment is still attached
         if (!isAdded) return
 
         context?.let { ctx ->
-            androidx.appcompat.app.AlertDialog.Builder(ctx)
-                .setTitle("Tukar Point")
-                .setMessage("Fitur tukar point akan segera hadir!")
-                .setPositiveButton("OK", null)
-                .show()
+            lifecycleScope.launch {
+                val userPoints = customerRepository.getUserPoints()
+
+                androidx.appcompat.app.AlertDialog.Builder(ctx)
+                    .setTitle("Point Rewards Anda")
+                    .setMessage("Anda memiliki $userPoints point.\n\nPoint dapat digunakan untuk mengurangi harga pembayaran:\n• 1 Point = Rp 1\n• Minimal penggunaan: 100 point\n• Maksimal penggunaan: 50% dari total harga\n\nGunakan point Anda saat melakukan pembayaran langganan!")
+                    .setPositiveButton("Mengerti", null)
+                    .setNegativeButton("Mulai Berlangganan") { _, _ ->
+                        // Navigate to channel browser when user wants to start subscription
+                        startActivity(Intent(requireContext(), ChannelBrowserActivity::class.java))
+                    }
+                    .show()
+            }
         }
     }
 

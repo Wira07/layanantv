@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="SwitchTheme">
+        <item name="android:thumb">?android:attr/colorAccent</item>
+        <item name="android:track">?android:attr/colorControlActivated</item>
+    </style>
+</resources>

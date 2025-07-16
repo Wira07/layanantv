@@ -9,8 +9,11 @@ data class Order(
     val userEmail: String = "",
     val channelId: String = "",
     val channelName: String = "",
-    val subscriptionType: String = "", // monthly, yearly
-    val totalAmount: Double = 0.0,
+    val subscriptionType: String = "", // monthly, yearly, 1_month, 3_month, 12_month
+    val originalAmount: Double = 0.0, // Harga asli sebelum diskon
+    val pointsUsed: Int = 0, // Jumlah point yang digunakan
+    val pointDiscount: Double = 0.0, // Nilai diskon dari point
+    val totalAmount: Double = 0.0, // Harga final setelah diskon
     val status: String = "pending", // pending, confirmed, completed, cancelled
     val paymentMethod: String = "",
     val paymentVerified: Boolean = false,

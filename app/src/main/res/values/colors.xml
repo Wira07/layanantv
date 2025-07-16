@@ -27,6 +27,7 @@
     <color name="colorBackground">#121212</color>
     <color name="colorBackgroundDark">#000000</color>
     <color name="colorSurface">#1E1E1E</color>
+    <color name="light_gray">#D3D3D3</color> <!-- Light gray color -->
 
     <!-- Text Colors -->
     <color name="colorTextPrimary">#FFFFFF</color>

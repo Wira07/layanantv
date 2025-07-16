@@ -284,10 +284,23 @@
                         android:text="Kelola Orders"
                         android:textSize="16sp"
                         android:backgroundTint="@color/primary_color"
-                        android:layout_marginBottom="32dp"
+                        android:layout_marginBottom="16dp"
                         android:enabled="true"
                         android:alpha="1.0"
                         android:drawableLeft="@drawable/ic_assignment"
+                        android:drawablePadding="8dp" />
+
+                    <Button
+                        android:id="@+id/btn_payment_verification"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:text="Verifikasi Pembayaran"
+                        android:textSize="16sp"
+                        android:backgroundTint="@color/primary_color"
+                        android:layout_marginBottom="16dp"
+                        android:enabled="true"
+                        android:alpha="1.0"
+                        android:drawableLeft="@drawable/ic_payment"
                         android:drawablePadding="8dp" />
 
                     <Button

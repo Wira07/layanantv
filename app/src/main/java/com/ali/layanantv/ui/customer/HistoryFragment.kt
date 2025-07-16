@@ -1,5 +1,6 @@
 package com.ali.layanantv.ui.customer
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -54,7 +55,7 @@ class HistoryFragment : Fragment() {
             },
             onReorderClick = { order ->
                 android.util.Log.d("HistoryFragment", "Reorder clicked: ${order.channelName}")
-                reorderSubscription(order)
+                navigateToPaymentActivity(order)
             }
         )
 
@@ -215,41 +216,23 @@ class HistoryFragment : Fragment() {
         }
     }
 
-    private fun reorderSubscription(order: Order) {
-        lifecycleScope.launch {
-            try {
-                // Check if binding is still valid before accessing it
-                _binding?.let { binding ->
-                    binding.progressBar.visibility = View.VISIBLE
-                }
+    private fun navigateToPaymentActivity(order: Order) {
+        try {
+            android.util.Log.d("HistoryFragment", "Navigating to PaymentActivity for channel: ${order.channelName}")
 
-                android.util.Log.d("HistoryFragment", "Reordering subscription for: ${order.channelName}")
-
-                // Use the renewSubscription function from repository
-                val newOrderId = customerRepository.renewSubscription(order)
-
-                // Check if binding is still valid before accessing it
-                _binding?.let { binding ->
-                    binding.progressBar.visibility = View.GONE
-                }
-
-                Toast.makeText(
-                    context,
-                    "Subscription berhasil diperpanjang untuk ${order.channelName}. Order ID: $newOrderId",
-                    Toast.LENGTH_LONG
-                ).show()
-
-                // Refresh data to show the new order
-                refreshData()
-
-            } catch (e: Exception) {
-                // Check if binding is still valid before accessing it
-                _binding?.let { binding ->
-                    binding.progressBar.visibility = View.GONE
-                }
-                android.util.Log.e("HistoryFragment", "Error reordering subscription", e)
-                showError("Error reordering subscription: ${e.message}")
+            val intent = Intent(requireContext(), PaymentActivity::class.java).apply {
+                putExtra(PaymentActivity.EXTRA_CHANNEL_ID, order.channelId)
+                putExtra(PaymentActivity.EXTRA_SUBSCRIPTION_TYPE, order.subscriptionType)
+                // Optional: Add flag to indicate this is a reorder
+                putExtra("is_reorder", true)
+                putExtra("original_order_id", order.id)
             }
+
+            startActivity(intent)
+
+        } catch (e: Exception) {
+            android.util.Log.e("HistoryFragment", "Error navigating to PaymentActivity", e)
+            showError("Error: ${e.message}")
         }
     }
 
