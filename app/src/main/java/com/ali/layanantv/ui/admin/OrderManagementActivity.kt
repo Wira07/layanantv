@@ -45,7 +45,7 @@ class OrderManagementActivity : AppCompatActivity() {
                 showVerifyPaymentDialog(order)
             },
             onUpdateStatus = { order ->
-                showUpdateStatusDialog(order)
+                showQuickStatusUpdate(order)
             },
             onViewDetails = { order ->
                 showOrderDetailsDialog(order)
@@ -172,7 +172,7 @@ class OrderManagementActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showUpdateStatusDialog(order: Order) {
+    private fun showQuickStatusUpdate(order: Order) {
         val statusOptions = arrayOf("🕐 Pending", "✅ Confirmed", "🎉 Completed", "❌ Cancelled")
         val statusValues = arrayOf("pending", "confirmed", "completed", "cancelled")
 
@@ -181,56 +181,59 @@ class OrderManagementActivity : AppCompatActivity() {
 
         AlertDialog.Builder(this)
             .setTitle("Update Status Order")
-            .setMessage("Order ID: ${order.id}\n" +
+            .setMessage("Order ID: ${order.id.take(8).uppercase()}\n" +
                     "Channel: ${order.channelName}\n" +
                     "Pelanggan: ${order.userName}\n" +
-                    "Status Saat Ini: ${order.status.uppercase()}")
+                    "Status Saat Ini: ${getStatusEmoji(order.status)} ${order.status.uppercase()}")
             .setSingleChoiceItems(statusOptions, currentStatusIndex) { dialog, which ->
                 val newStatus = statusValues[which]
                 if (newStatus != order.status) {
-                    showStatusUpdateConfirmation(order, newStatus)
+                    dialog.dismiss()
+                    // Langsung update tanpa konfirmasi lagi
+                    updateOrderStatus(order.id, newStatus)
+                } else {
+                    dialog.dismiss()
+                    Toast.makeText(this, "Status tidak berubah", Toast.LENGTH_SHORT).show()
                 }
-                dialog.dismiss()
             }
             .setNegativeButton("Batal", null)
             .show()
     }
 
-    private fun showStatusUpdateConfirmation(order: Order, newStatus: String) {
-        val statusEmoji = when (newStatus) {
+    private fun getStatusEmoji(status: String): String {
+        return when (status.lowercase()) {
             "pending" -> "🕐"
             "confirmed" -> "✅"
             "completed" -> "🎉"
             "cancelled" -> "❌"
             else -> "📋"
         }
-
-        AlertDialog.Builder(this)
-            .setTitle("Konfirmasi Perubahan Status")
-            .setMessage("Apakah Anda yakin ingin mengubah status order?\n\n" +
-                    "Dari: ${order.status.uppercase()}\n" +
-                    "Ke: $statusEmoji ${newStatus.uppercase()}")
-            .setPositiveButton("Ya, Ubah") { _, _ ->
-                updateOrderStatus(order.id, newStatus)
-            }
-            .setNegativeButton("Batal", null)
-            .show()
     }
 
     private fun showOrderDetailsDialog(order: Order) {
         val paymentStatus = if (order.paymentVerified) "✅ Verified" else "⏳ Pending"
         val notes = if (order.notes.isNotEmpty()) order.notes else "Tidak ada catatan"
 
+        // Format points used and discount
+        val pointsInfo = if (order.pointsUsed > 0) {
+            "\nPoints Used: ${order.pointsUsed}\n" +
+                    "Points Discount: Rp ${String.format("%,.0f", order.pointDiscount)}\n" +
+                    "Original Amount: Rp ${String.format("%,.0f", order.originalAmount)}"
+        } else {
+            ""
+        }
+
         AlertDialog.Builder(this)
             .setTitle("Detail Order")
             .setMessage("Order ID: ${order.id}\n" +
-                    "Status: ${order.status.uppercase()}\n" +
+                    "Status: ${getStatusEmoji(order.status)} ${order.status.uppercase()}\n" +
                     "Pelanggan: ${order.userName}\n" +
                     "Email: ${order.userEmail}\n" +
                     "Channel: ${order.channelName}\n" +
                     "Tipe: ${order.subscriptionType}\n" +
                     "Pembayaran: ${order.paymentMethod}\n" +
-                    "Jumlah: Rp ${String.format("%,.0f", order.totalAmount)}\n" +
+                    pointsInfo +
+                    "\nTotal Amount: Rp ${String.format("%,.0f", order.totalAmount)}\n" +
                     "Status Pembayaran: $paymentStatus\n" +
                     "Catatan: $notes")
             .setPositiveButton("Tutup", null)
@@ -275,13 +278,7 @@ class OrderManagementActivity : AppCompatActivity() {
                 // Update order status
                 adminRepository.updateOrderStatus(orderId, status)
 
-                val statusEmoji = when (status) {
-                    "pending" -> "🕐"
-                    "confirmed" -> "✅"
-                    "completed" -> "🎉"
-                    "cancelled" -> "❌"
-                    else -> "📋"
-                }
+                val statusEmoji = getStatusEmoji(status)
 
                 Toast.makeText(this@OrderManagementActivity,
                     "$statusEmoji Status order berhasil diubah ke ${status.uppercase()}",

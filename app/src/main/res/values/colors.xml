@@ -151,5 +151,21 @@
     <color name="whatsapp_color">#25D366</color>
     <color name="email_color">#FF5722</color>
     <color name="phone_color">#4CAF50</color>
+    <!-- Background Colors -->
+    <color name="background_white">#FFFFFF</color>
+    <!-- Status Colors -->
+    <!-- Button Colors -->
+    <color name="btn_verify_payment">#4CAF50</color>
+    <color name="btn_verify_payment_disabled">#A5D6A7</color>
+
+    <!-- Additional Colors -->
+    <color name="divider">#E0E0E0</color>
+    <color name="notes_background">#F5F5F5</color>
+    <color name="notes_border">#E0E0E0</color>
+
+    <!-- Dark Theme Support (Optional) -->
+    <color name="card_background_dark">#1E1E1E</color>
+    <color name="text_primary_dark">#FFFFFF</color>
+    <color name="text_secondary_dark">#B0B0B0</color>
 
 </resources>

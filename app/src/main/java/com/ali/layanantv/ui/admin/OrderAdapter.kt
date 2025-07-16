@@ -1,5 +1,6 @@
 package com.ali.layanantv.ui.admin
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -68,31 +69,59 @@ class OrderAdapter(
                 if (order.notes.isNotEmpty()) {
                     tvNotes.visibility = View.VISIBLE
                     tvNotes.text = "📝 ${order.notes}"
+                    layoutNotes.visibility = View.VISIBLE
                 } else {
                     tvNotes.visibility = View.GONE
+                    layoutNotes.visibility = View.GONE
                 }
 
                 // Button actions
+                btnViewDetails.setOnClickListener {
+                    navigateToOrderStatusUpdate(order)
+                }
+
                 btnVerifyPayment.setOnClickListener {
                     onVerifyPayment(order)
                 }
 
                 btnUpdateStatus.setOnClickListener {
-                    onUpdateStatus(order)
-                }
-
-                // Card click for details
-                root.setOnClickListener {
-                    onViewDetails(order)
+                    navigateToOrderStatusUpdate(order)
                 }
 
                 // Button visibility and state
                 updateButtonVisibility(order)
 
+                // Add click ripple effect to entire card - Navigate to OrderStatusUpdateActivity
+                root.setOnClickListener {
+                    navigateToOrderStatusUpdate(order)
+                }
+
                 // Add subtle animation for better UX
                 root.alpha = 0f
                 root.animate().alpha(1f).setDuration(300).start()
             }
+        }
+
+        private fun navigateToOrderStatusUpdate(order: Order) {
+            val context = binding.root.context
+            val intent = Intent(context, OrderStatusUpdateActivity::class.java).apply {
+                putExtra("ORDER_ID", order.id)
+                putExtra("ORDER_STATUS", order.status)
+                putExtra("CUSTOMER_NAME", order.userName)
+                putExtra("CUSTOMER_EMAIL", order.userEmail)
+                putExtra("CHANNEL_NAME", order.channelName)
+                putExtra("SUBSCRIPTION_TYPE", order.subscriptionType)
+                putExtra("PAYMENT_METHOD", order.paymentMethod)
+                putExtra("TOTAL_AMOUNT", order.totalAmount)
+                putExtra("PAYMENT_VERIFIED", order.paymentVerified)
+                putExtra("NOTES", order.notes)
+
+                // Optional: Add more data if needed
+                putExtra("ORDER_DATE", order.createdAt.seconds * 1000)
+                putExtra("USER_ID", order.userId)
+                putExtra("CHANNEL_ID", order.channelId)
+            }
+            context.startActivity(intent)
         }
 
         private fun updateStatusUI(status: String) {
@@ -135,40 +164,56 @@ class OrderAdapter(
         }
 
         private fun updateButtonVisibility(order: Order) {
-            when (order.status.lowercase()) {
-                "pending" -> {
-                    // Show verify payment button only if payment is not verified
-                    binding.btnVerifyPayment.visibility = if (!order.paymentVerified) View.VISIBLE else View.GONE
-                    binding.btnUpdateStatus.visibility = View.VISIBLE
-                    binding.btnVerifyPayment.isEnabled = true
-                    binding.btnUpdateStatus.isEnabled = true
+            binding.apply {
+                // Detail button is always visible
+                btnViewDetails.visibility = View.VISIBLE
+                btnViewDetails.isEnabled = true
 
-                    // Update button text based on payment status
-                    binding.btnVerifyPayment.text = if (order.paymentVerified) "✅ Verified" else "⏳ Verify Payment"
-                }
-                "confirmed" -> {
-                    binding.btnVerifyPayment.visibility = View.GONE
-                    binding.btnUpdateStatus.visibility = View.VISIBLE
-                    binding.btnUpdateStatus.isEnabled = true
-                    binding.btnUpdateStatus.text = "Update Status"
-                }
-                "completed" -> {
-                    binding.btnVerifyPayment.visibility = View.GONE
-                    binding.btnUpdateStatus.visibility = View.VISIBLE
-                    binding.btnUpdateStatus.isEnabled = true
-                    binding.btnUpdateStatus.text = "Change Status"
-                }
-                "cancelled" -> {
-                    binding.btnVerifyPayment.visibility = View.GONE
-                    binding.btnUpdateStatus.visibility = View.VISIBLE
-                    binding.btnUpdateStatus.isEnabled = true
-                    binding.btnUpdateStatus.text = "Change Status"
-                }
-                else -> {
-                    binding.btnVerifyPayment.visibility = View.VISIBLE
-                    binding.btnUpdateStatus.visibility = View.VISIBLE
-                    binding.btnVerifyPayment.isEnabled = true
-                    binding.btnUpdateStatus.isEnabled = true
+                when (order.status.lowercase()) {
+                    "pending" -> {
+                        // Show verify payment button only if payment is not verified
+                        btnVerifyPayment.visibility = if (!order.paymentVerified) View.VISIBLE else View.GONE
+                        btnUpdateStatus.visibility = View.VISIBLE
+
+                        // Update button text and functionality
+                        if (order.paymentVerified) {
+                            btnVerifyPayment.text = "✅ Verified"
+                            btnVerifyPayment.isEnabled = false
+                        } else {
+                            btnVerifyPayment.text = "💰 Verifikasi"
+                            btnVerifyPayment.isEnabled = true
+                        }
+
+                        // Status button should show next logical status
+                        btnUpdateStatus.text = "✅ Confirm"
+                        btnUpdateStatus.isEnabled = true
+                    }
+                    "confirmed" -> {
+                        btnVerifyPayment.visibility = View.GONE
+                        btnUpdateStatus.visibility = View.VISIBLE
+                        btnUpdateStatus.isEnabled = true
+                        btnUpdateStatus.text = "🎉 Complete"
+                    }
+                    "completed" -> {
+                        btnVerifyPayment.visibility = View.GONE
+                        btnUpdateStatus.visibility = View.VISIBLE
+                        btnUpdateStatus.isEnabled = true
+                        btnUpdateStatus.text = "🔄 Change"
+                    }
+                    "cancelled" -> {
+                        btnVerifyPayment.visibility = View.GONE
+                        btnUpdateStatus.visibility = View.VISIBLE
+                        btnUpdateStatus.isEnabled = true
+                        btnUpdateStatus.text = "🔄 Restore"
+                    }
+                    else -> {
+                        btnVerifyPayment.visibility = View.VISIBLE
+                        btnUpdateStatus.visibility = View.VISIBLE
+                        btnVerifyPayment.isEnabled = true
+                        btnUpdateStatus.isEnabled = true
+                        btnVerifyPayment.text = "💰 Verifikasi"
+                        btnUpdateStatus.text = "🔄 Status"
+                    }
                 }
             }
         }
