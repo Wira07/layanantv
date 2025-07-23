@@ -93,15 +93,6 @@
                 android:backgroundTint="@color/background_dark"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
-            <Button
-                android:id="@+id/btn_quick_reply_3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Batalkan Langganan"
-                android:textSize="12sp"
-                android:backgroundTint="@color/background_color"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
-
         </LinearLayout>
 
     </ScrollView>

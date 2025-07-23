@@ -34,6 +34,8 @@ class ChatFragmentAdmin : Fragment() {
     private var typingJob: Job? = null
     private var searchJob: Job? = null
     private var loadingJob: Job? = null
+    private var messagesJob: Job? = null
+
 
     companion object {
         private const val LOADING_TIMEOUT = 10000L // 10 seconds timeout
@@ -120,66 +122,102 @@ class ChatFragmentAdmin : Fragment() {
         showChatInterface(false)
     }
 
+//    private fun loadChatRooms() {
+//        // Cancel any existing loading job
+//        loadingJob?.cancel()
+//
+//        // Check if fragment is still active
+//        if (!isAdded || _binding == null) return
+//
+//        showLoading(true)
+//
+//        loadingJob = lifecycleScope.launch {
+//            try {
+//                // Check if coroutine is still active
+//                if (!isActive) return@launch
+//
+//                // Add timeout to prevent endless loading
+//                withTimeout(LOADING_TIMEOUT) {
+//                    chatRepository.getChatRoomsFlow().collect { chatRooms ->
+//                        // Check if fragment is still active and attached
+//                        if (!isActive || !isAdded || _binding == null) return@collect
+//
+//                        // Hide loading as soon as we get data
+//                        showLoading(false)
+//
+//                        chatRoomAdapter.submitList(chatRooms)
+//
+//                        // Update UI based on chat rooms availability
+//                        if (chatRooms.isEmpty()) {
+//                            binding.tvEmptyState.visibility = View.VISIBLE
+//                            binding.rvChatRooms.visibility = View.GONE
+//                        } else {
+//                            binding.tvEmptyState.visibility = View.GONE
+//                            binding.rvChatRooms.visibility = View.VISIBLE
+//                        }
+//                    }
+//                }
+//            } catch (e: TimeoutCancellationException) {
+//                if (!isActive || !isAdded || _binding == null) return@launch
+//                showLoading(false)
+//                showError("Loading timeout. Please try again.")
+//                // Show empty state on timeout
+//                binding.tvEmptyState.visibility = View.VISIBLE
+//                binding.rvChatRooms.visibility = View.GONE
+//            } catch (e: Exception) {
+//                if (!isActive || !isAdded || _binding == null) return@launch
+//                showLoading(false)
+//                // Only show error if it's not a cancellation
+//                if (e.message?.contains("cancelled", ignoreCase = true) != true) {
+//                    showError("Error loading chat rooms: ${e.message}")
+//                }
+//                // Show empty state on error
+//                binding.tvEmptyState.visibility = View.VISIBLE
+//                binding.rvChatRooms.visibility = View.GONE
+//            }
+//        }
+//
+//        // Additional safety: Hide loading after maximum time regardless
+//        lifecycleScope.launch {
+//            delay(LOADING_TIMEOUT)
+//            if (isActive && isAdded && _binding != null && binding.progressBar.visibility == View.VISIBLE) {
+//                showLoading(false)
+//            }
+//        }
+//    }
+
     private fun loadChatRooms() {
-        // Cancel any existing loading job
         loadingJob?.cancel()
 
-        // Check if fragment is still active
         if (!isAdded || _binding == null) return
 
         showLoading(true)
+        var receivedData = false
 
         loadingJob = lifecycleScope.launch {
-            try {
-                // Check if coroutine is still active
-                if (!isActive) return@launch
+            chatRepository.getChatRoomsFlow().collect { chatRooms ->
+                if (!isActive || !isAdded || _binding == null) return@collect
 
-                // Add timeout to prevent endless loading
-                withTimeout(LOADING_TIMEOUT) {
-                    chatRepository.getChatRoomsFlow().collect { chatRooms ->
-                        // Check if fragment is still active and attached
-                        if (!isActive || !isAdded || _binding == null) return@collect
-
-                        // Hide loading as soon as we get data
-                        showLoading(false)
-
-                        chatRoomAdapter.submitList(chatRooms)
-
-                        // Update UI based on chat rooms availability
-                        if (chatRooms.isEmpty()) {
-                            binding.tvEmptyState.visibility = View.VISIBLE
-                            binding.rvChatRooms.visibility = View.GONE
-                        } else {
-                            binding.tvEmptyState.visibility = View.GONE
-                            binding.rvChatRooms.visibility = View.VISIBLE
-                        }
-                    }
-                }
-            } catch (e: TimeoutCancellationException) {
-                if (!isActive || !isAdded || _binding == null) return@launch
                 showLoading(false)
-                showError("Loading timeout. Please try again.")
-                // Show empty state on timeout
-                binding.tvEmptyState.visibility = View.VISIBLE
-                binding.rvChatRooms.visibility = View.GONE
-            } catch (e: Exception) {
-                if (!isActive || !isAdded || _binding == null) return@launch
-                showLoading(false)
-                // Only show error if it's not a cancellation
-                if (e.message?.contains("cancelled", ignoreCase = true) != true) {
-                    showError("Error loading chat rooms: ${e.message}")
-                }
-                // Show empty state on error
-                binding.tvEmptyState.visibility = View.VISIBLE
-                binding.rvChatRooms.visibility = View.GONE
+                receivedData = true
+
+                chatRoomAdapter.submitList(chatRooms)
+
+                binding.tvEmptyState.visibility =
+                    if (chatRooms.isEmpty()) View.VISIBLE else View.GONE
+                binding.rvChatRooms.visibility =
+                    if (chatRooms.isEmpty()) View.GONE else View.VISIBLE
             }
         }
 
-        // Additional safety: Hide loading after maximum time regardless
+        // Timeout fallback
         lifecycleScope.launch {
             delay(LOADING_TIMEOUT)
-            if (isActive && isAdded && _binding != null && binding.progressBar.visibility == View.VISIBLE) {
+            if (!receivedData && isAdded && _binding != null) {
                 showLoading(false)
+                showError("Loading timeout. Please try again.")
+                binding.tvEmptyState.visibility = View.VISIBLE
+                binding.rvChatRooms.visibility = View.GONE
             }
         }
     }
@@ -200,6 +238,8 @@ class ChatFragmentAdmin : Fragment() {
     }
 
     private fun observeMessages() {
+        messagesJob?.cancel()
+
         currentChatRoom?.let { room ->
             lifecycleScope.launch {
                 try {
@@ -245,7 +285,10 @@ class ChatFragmentAdmin : Fragment() {
                 try {
                     if (!isActive || !isAdded || _binding == null) return@launch
 
-                    val success = chatRepository.sendMessage(room.id, message, MessageType.TEXT)
+                    val success = chatRepository.sendMessage(
+                        room.id, message,
+                        MessageType.TEXT.toString()
+                    )
                     if (!success && isActive && isAdded && _binding != null) {
                         showError("Gagal mengirim pesan")
                     }
@@ -272,7 +315,7 @@ class ChatFragmentAdmin : Fragment() {
                     currentChatRoom = null
                     binding.btnCloseChat.visibility = View.GONE
                     showChatInterface(false)
-                    chatAdapter.submitList(emptyList())
+//                    chatAdapter.submitList(emptyList())
 
                     if (isActive && isAdded && _binding != null) {
                         Toast.makeText(context, "Chat room ditutup", Toast.LENGTH_SHORT).show()
@@ -396,6 +439,7 @@ class ChatFragmentAdmin : Fragment() {
         typingJob?.cancel()
         searchJob?.cancel()
         loadingJob?.cancel()
+        messagesJob?.cancel()
         _binding = null
     }
 }

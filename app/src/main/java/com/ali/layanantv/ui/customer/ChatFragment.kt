@@ -66,10 +66,6 @@ class ChatFragment : Fragment() {
             binding.etMessage.setText("Bagaimana cara perpanjang langganan?")
         }
 
-        binding.btnQuickReply3.setOnClickListener {
-            binding.etMessage.setText("Saya ingin membatalkan langganan")
-        }
-
         // Setup typing indicator
         binding.etMessage.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -128,7 +124,9 @@ class ChatFragment : Fragment() {
             binding.etMessage.text?.clear()
 
             lifecycleScope.launch {
-                val success = chatRepository.sendMessage(room.id, message, MessageType.TEXT)
+                val success = chatRepository.sendMessage(room.id, message,
+                    MessageType.TEXT.toString()
+                )
                 if (!success) {
                     showError("Gagal mengirim pesan")
                 }

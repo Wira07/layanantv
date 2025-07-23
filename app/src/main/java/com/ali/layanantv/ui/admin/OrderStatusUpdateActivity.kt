@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import com.ali.layanantv.R
 import com.ali.layanantv.data.repository.AdminRepository
 import com.ali.layanantv.databinding.ActivityOrderStatusUpdateBinding
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.launch
 
 class OrderStatusUpdateActivity : AppCompatActivity() {
@@ -25,6 +26,9 @@ class OrderStatusUpdateActivity : AppCompatActivity() {
     private var totalAmount: Double = 0.0
     private var paymentVerified: Boolean = false
     private var notes: String = ""
+
+    private var proofImageUrl: String? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +54,7 @@ class OrderStatusUpdateActivity : AppCompatActivity() {
         paymentMethod = intent.getStringExtra("PAYMENT_METHOD") ?: ""
         totalAmount = intent.getDoubleExtra("TOTAL_AMOUNT", 0.0)
         paymentVerified = intent.getBooleanExtra("PAYMENT_VERIFIED", false)
+        proofImageUrl = intent.getStringExtra("PAYMENT_IMAGE")
         notes = intent.getStringExtra("NOTES") ?: ""
     }
 
@@ -121,6 +126,20 @@ class OrderStatusUpdateActivity : AppCompatActivity() {
 
             // Payment verification status
             updatePaymentStatusDisplay()
+
+            if (!proofImageUrl.isNullOrEmpty()) {
+                binding.imgPaymentProof.visibility = View.VISIBLE
+
+                // Jika pakai Glide
+                Glide.with(binding.root.context)
+                    .load(proofImageUrl)
+                    .centerCrop() // <- Tambahan
+                    .into(binding.imgPaymentProof)
+
+            } else {
+                binding.imgPaymentProof.visibility = View.GONE
+            }
+
 
             // Notes
             if (notes.isNotEmpty()) {

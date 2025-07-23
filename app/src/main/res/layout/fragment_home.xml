@@ -17,7 +17,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="20dp"
-            app:cardElevation="8dp"
+            app:cardElevation="0dp"
             app:cardUseCompatPadding="true">
 
             <LinearLayout
@@ -76,7 +76,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:cardCornerRadius="12dp"
-                    app:cardElevation="4dp"
+                    app:cardElevation="0dp"
                     app:cardUseCompatPadding="false"
                     android:clickable="true"
                     android:focusable="true"
@@ -193,12 +193,12 @@
 
         </LinearLayout>
 
-        <!-- Main Services Grid - Now with 4 services -->
+        <!-- Main Services Grid - Now with 3 services in one row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="16dp">
 
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
@@ -206,7 +206,7 @@
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="6dp"
+                app:cardElevation="0dp"
                 app:cardUseCompatPadding="true">
 
                 <LinearLayout
@@ -257,7 +257,7 @@
                 android:layout_marginStart="2dp"
                 android:layout_marginEnd="2dp"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="6dp"
+                app:cardElevation="0dp"
                 app:cardUseCompatPadding="true">
 
                 <LinearLayout
@@ -301,22 +301,13 @@
 
             </androidx.cardview.widget.CardView>
 
-        </LinearLayout>
-
-        <!-- Second Row of Services -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
-
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
                 android:layout_height="120dp"
                 android:layout_weight="1"
-                android:layout_marginEnd="6dp"
+                android:layout_marginStart="6dp"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="6dp"
+                app:cardElevation="0dp"
                 app:cardUseCompatPadding="true">
 
                 <LinearLayout
@@ -360,58 +351,6 @@
 
             </androidx.cardview.widget.CardView>
 
-            <!-- NEW: Upload Payment Proof Card -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="0dp"
-                android:layout_height="120dp"
-                android:layout_weight="1"
-                android:layout_marginStart="2dp"
-                android:layout_marginEnd="2dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="6dp"
-                app:cardUseCompatPadding="true">
-
-                <LinearLayout
-                    android:id="@+id/btn_upload_payment_proof"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/service_card_bg_4"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:padding="12dp">
-
-                    <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:src="@drawable/ic_upload_qris"
-                        android:layout_marginBottom="6dp"
-                        android:scaleType="centerCrop" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Upload Bukti Bayar"
-                        android:textAlignment="center"
-                        android:textColor="@android:color/white"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:lineSpacingExtra="1dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="QRIS Payment"
-                        android:textAlignment="center"
-                        android:textColor="@android:color/white"
-                        android:textSize="10sp"
-                        android:alpha="0.8"/>
-
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
         </LinearLayout>
 
         <!-- Premium Promo Section -->
@@ -421,7 +360,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="20dp"
-            app:cardElevation="8dp"
+            app:cardElevation="0dp"
             app:cardUseCompatPadding="true"
             android:clickable="true"
             android:focusable="true"
@@ -540,6 +479,526 @@
             </LinearLayout>
 
         </androidx.cardview.widget.CardView>
+
+        <!-- Quick Actions Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Akses Cepat"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"/>
+
+        </LinearLayout>
+
+        <!-- Quick Actions Grid -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="6dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:cardUseCompatPadding="true">
+
+                <LinearLayout
+                    android:id="@+id/btn_customer_service"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@color/background_light"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_support"
+                        android:layout_marginEnd="8dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Customer Service"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
+                android:layout_height="80dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:cardUseCompatPadding="true">
+
+                <LinearLayout
+                    android:id="@+id/btn_notifications"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@color/background_light"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_notification"
+                        android:layout_marginEnd="8dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Notifikasi"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+
+        <!-- Popular Channels Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Channel Populer"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Lihat Semua"
+                android:textSize="14sp"
+                android:textColor="@color/primary_color"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="6dp" />
+
+        </LinearLayout>
+
+        <!-- Popular Channels List -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:cardUseCompatPadding="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@color/background_light">
+
+                <LinearLayout
+                    android:id="@+id/channel_item_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_tv_channel"
+                        android:layout_marginEnd="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="RCTI"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Variety • Entertainment"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="HD"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_color"
+                        android:background="@drawable/badge_hd_bg"
+                        android:padding="4dp" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/divider_color"
+                    android:layout_marginHorizontal="12dp" />
+
+                <LinearLayout
+                    android:id="@+id/channel_item_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_tv_channel"
+                        android:layout_marginEnd="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="SCTV"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="News • Drama"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="HD"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_color"
+                        android:background="@drawable/badge_hd_bg"
+                        android:padding="4dp" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/divider_color"
+                    android:layout_marginHorizontal="12dp" />
+
+                <LinearLayout
+                    android:id="@+id/channel_item_3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_tv_channel"
+                        android:layout_marginEnd="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Trans TV"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Variety • Music"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="HD"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary_color"
+                        android:background="@drawable/badge_hd_bg"
+                        android:padding="4dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Account Settings Quick Access -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Pengaturan Akun"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"/>
+
+        </LinearLayout>
+
+        <!-- Settings Items -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:cardUseCompatPadding="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@color/background_light">
+
+                <LinearLayout
+                    android:id="@+id/btn_profile_settings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_profile"
+                        android:layout_marginEnd="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Profil Saya"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Kelola informasi pribadi"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_arrow_right"
+                        android:alpha="0.6" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/divider_color"
+                    android:layout_marginHorizontal="12dp" />
+
+                <LinearLayout
+                    android:id="@+id/btn_payment_methods"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_payment"
+                        android:layout_marginEnd="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Metode Pembayaran"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Kelola kartu dan e-wallet"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_arrow_right"
+                        android:alpha="0.6" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/divider_color"
+                    android:layout_marginHorizontal="12dp" />
+
+                <LinearLayout
+                    android:id="@+id/btn_app_settings"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_settings"
+                        android:layout_marginEnd="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pengaturan Aplikasi"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Notifikasi, kualitas video, dll"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_arrow_right"
+                        android:alpha="0.6" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Footer Spacer -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="24dp" />
 
     </LinearLayout>
 

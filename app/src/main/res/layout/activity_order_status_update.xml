@@ -360,6 +360,16 @@
                             android:textStyle="bold"
                             android:layout_marginBottom="12dp" />
 
+                        <ImageView
+                            android:id="@+id/imgPaymentProof"
+                            android:layout_width="match_parent"
+                            android:layout_height="200dp"
+                            android:layout_marginTop="16dp"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone"
+                            android:contentDescription="Bukti Pembayaran"
+                            android:background="@android:color/darker_gray" />
+
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnVerifyPayment"
                             android:layout_width="match_parent"

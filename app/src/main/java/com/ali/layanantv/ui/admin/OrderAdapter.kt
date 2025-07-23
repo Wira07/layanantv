@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.ali.layanantv.R
 import com.ali.layanantv.data.model.Order
+import com.ali.layanantv.data.repository.AdminRepository
 import com.ali.layanantv.databinding.ItemOrderAdminBinding
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -21,6 +22,8 @@ class OrderAdapter(
     private val onUpdateStatus: (Order) -> Unit,
     private val onViewDetails: (Order) -> Unit
 ) : ListAdapter<Order, OrderAdapter.OrderViewHolder>(OrderDiffCallback()) {
+
+    private lateinit var adminRepository: AdminRepository
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): OrderViewHolder {
         val binding = ItemOrderAdminBinding.inflate(
@@ -103,7 +106,9 @@ class OrderAdapter(
         }
 
         private fun navigateToOrderStatusUpdate(order: Order) {
+
             val context = binding.root.context
+
             val intent = Intent(context, OrderStatusUpdateActivity::class.java).apply {
                 putExtra("ORDER_ID", order.id)
                 putExtra("ORDER_STATUS", order.status)
@@ -112,8 +117,9 @@ class OrderAdapter(
                 putExtra("CHANNEL_NAME", order.channelName)
                 putExtra("SUBSCRIPTION_TYPE", order.subscriptionType)
                 putExtra("PAYMENT_METHOD", order.paymentMethod)
-                putExtra("TOTAL_AMOUNT", order.totalAmount)
                 putExtra("PAYMENT_VERIFIED", order.paymentVerified)
+                putExtra("PAYMENT_IMAGE", order.proofImageUrl)
+                putExtra("TOTAL_AMOUNT", order.totalAmount)
                 putExtra("NOTES", order.notes)
 
                 // Optional: Add more data if needed

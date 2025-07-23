@@ -8,5 +8,5 @@ data class User(
     val points: Int = 0,
     val role: String = Role.CUSTOMER.name,
     val createdAt: Long = System.currentTimeMillis(),
-    val isActive: Boolean = true
+    val active: Boolean = true
 )

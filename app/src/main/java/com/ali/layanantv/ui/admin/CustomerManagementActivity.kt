@@ -116,7 +116,7 @@ class CustomerManagementActivity : AppCompatActivity() {
     }
 
     private fun showToggleStatusDialog(user: User) {
-        val newStatus = !user.isActive
+        val newStatus = !user.active
         val statusText = if (newStatus) "mengaktifkan" else "menonaktifkan"
 
         AlertDialog.Builder(this)
@@ -129,13 +129,13 @@ class CustomerManagementActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun updateUserStatus(user: User, isActive: Boolean) {
+    private fun updateUserStatus(user: User, active: Boolean) {
         lifecycleScope.launch {
             try {
                 binding.progressBar.visibility = View.VISIBLE
-                adminRepository.updateUserStatus(user.uid, isActive)
+                adminRepository.updateUserStatus(user.uid, active)
 
-                val statusText = if (isActive) "diaktifkan" else "dinonaktifkan"
+                val statusText = if (active) "diaktifkan" else "dinonaktifkan"
                 Toast.makeText(this@CustomerManagementActivity, "Pelanggan berhasil $statusText", Toast.LENGTH_SHORT).show()
 
                 loadCustomers()

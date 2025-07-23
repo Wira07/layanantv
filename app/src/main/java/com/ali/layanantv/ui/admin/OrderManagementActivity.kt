@@ -1,6 +1,7 @@
 package com.ali.layanantv.ui.admin
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -116,6 +117,9 @@ class OrderManagementActivity : AppCompatActivity() {
                 binding.layoutEmpty.visibility = View.GONE
 
                 val allOrders = adminRepository.getAllOrders()
+                Log.d("LOAD_ORDERS", "Total orders from DB: ${allOrders.size}")
+                allOrders.forEach { Log.d("LOAD_ORDERS", "Order ID: ${it.id}, Status: ${it.status}, Created: ${it.createdAt}") }
+
                 val filteredOrders = if (statusFilter != null) {
                     allOrders.filter { it.status == statusFilter }
                 } else {
@@ -132,6 +136,8 @@ class OrderManagementActivity : AppCompatActivity() {
                     else
                         "Belum ada order"
                 } else {
+                    Log.d("LOAD_ORDERS", "Filtered orders (${statusFilter ?: "all"}): ${filteredOrders.size}")
+                    Log.d("LOAD_ORDERS", "Sorted orders count: ${sortedOrders.size}")
                     orderAdapter.submitList(sortedOrders)
                 }
 

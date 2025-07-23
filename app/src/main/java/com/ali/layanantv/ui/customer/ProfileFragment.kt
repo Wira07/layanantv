@@ -82,12 +82,12 @@ class ProfileFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 val user = customerRepository.getCurrentUser()
-                val userPoints = customerRepository.getUserPoints()
+                if (user != null) {
+                    val userPoints = customerRepository.getUserPoints(user.uid)
 
-                user?.let {
-                    binding.tvUserName.text = it.name
-                    binding.tvUserEmail.text = it.email
-                    binding.tvUserPhone.text = it.phoneNumber ?: "-"
+                    binding.tvUserName.text = user.name
+                    binding.tvUserEmail.text = user.email
+                    binding.tvUserPhone.text = user.phoneNumber ?: "-"
                     binding.tvUserPoints.text = "$userPoints Points"
                 }
             } catch (e: Exception) {

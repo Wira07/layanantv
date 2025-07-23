@@ -77,7 +77,7 @@ class ChatAdapter : ListAdapter<ChatMessage, RecyclerView.ViewHolder>(ChatDiffCa
             binding.tvTimestamp.text = formatTimestamp(message.timestamp.toDate())
 
             // Show read status
-            if (message.isRead) {
+            if (message.read) {
                 binding.ivReadStatus.visibility = View.VISIBLE
             } else {
                 binding.ivReadStatus.visibility = View.GONE

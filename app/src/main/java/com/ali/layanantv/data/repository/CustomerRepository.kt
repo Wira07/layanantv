@@ -1,5 +1,7 @@
 package com.ali.layanantv.data.repository
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
 import com.ali.layanantv.data.model.Channel
 import com.ali.layanantv.data.model.CustomerDashboardStats
@@ -9,9 +11,17 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.Timestamp
-import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.Dispatchers
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 
 class CustomerRepository {
     private val firestore = FirebaseFirestore.getInstance()
@@ -37,7 +47,10 @@ class CustomerRepository {
             val currentPoints = userSnapshot.getLong("points")?.toInt() ?: 0
 
             if (currentPoints < pointsToDeduct) {
-                Log.e(TAG, "Insufficient points. Current: $currentPoints, Required: $pointsToDeduct")
+                Log.e(
+                    TAG,
+                    "Insufficient points. Current: $currentPoints, Required: $pointsToDeduct"
+                )
                 return false
             }
 
@@ -97,7 +110,12 @@ class CustomerRepository {
     }
 
     // Method untuk mencatat transaksi point
-    private suspend fun recordPointTransaction(userId: String, points: Int, type: String, reason: String) {
+    private suspend fun recordPointTransaction(
+        userId: String,
+        points: Int,
+        type: String,
+        reason: String
+    ) {
         try {
             Log.d(TAG, "Recording point transaction: user=$userId, points=$points, type=$type")
 
@@ -220,38 +238,46 @@ class CustomerRepository {
 
             // Validasi user authentication
             val currentUser = auth.currentUser
-            if (currentUser == null) {
-                Log.e(TAG, "User not authenticated")
-                throw SecurityException("User not authenticated")
-            }
+                ?: throw SecurityException("User not authenticated")
 
             // Validasi bahwa order.userId sama dengan current user
             if (order.userId != currentUser.uid) {
-                Log.e(TAG, "User ID mismatch: order.userId=${order.userId}, currentUser.uid=${currentUser.uid}")
+                Log.e(
+                    TAG,
+                    "User ID mismatch: order.userId=${order.userId}, currentUser.uid=${currentUser.uid}"
+                )
                 throw SecurityException("User ID mismatch")
             }
 
             // Pastikan order memiliki semua field yang diperlukan
-            val orderData = hashMapOf(
-                "userId" to order.userId,
-                "channelId" to order.channelId,
-                "channelName" to order.channelName,
-                "subscriptionType" to order.subscriptionType,
+            val orderData = mutableMapOf<String, Any>(
+                "userId" to (order.userId ?: ""),
+                "channelId" to (order.channelId ?: ""),
+                "channelName" to (order.channelName ?: ""),
+                "subscriptionType" to (order.subscriptionType ?: ""),
+                "originalAmount" to order.originalAmount,
+                "pointDiscount" to order.pointDiscount,
+                "pointsUsed" to order.pointsUsed,
                 "totalAmount" to order.totalAmount,
-                "status" to "pending", // Sesuai dengan validasi di rules: isValidOrderStatus
+                "proofImageUrl" to (order.proofImageUrl ?: ""),
+                "status" to "pending",
                 "createdAt" to Timestamp.now(),
                 "updatedAt" to Timestamp.now()
             )
 
             // Tambahkan field opsional jika ada
-            if (order.paymentMethod.isNotEmpty()) {
-                orderData["paymentMethod"] = order.paymentMethod
+            // Field opsional
+            order.paymentMethod?.takeIf { it.isNotBlank() }?.let {
+                orderData["paymentMethod"] = it
+            }
+            order.notes.takeIf { it.isNotBlank() }?.let {
+                orderData["notes"] = it
             }
 
-            Log.d(TAG, "Creating order with data: $orderData")
+            Log.d(TAG, "createOrder data = $orderData")
 
             val docRef = firestore.collection("orders").add(orderData).await()
-            Log.d(TAG, "Order created with ID: ${docRef.id}")
+            Log.d(TAG, "Order stored with ID = ${docRef.id}")
 
             return docRef.id
         } catch (e: Exception) {
@@ -261,15 +287,19 @@ class CustomerRepository {
                 e.message?.contains("PERMISSION_DENIED") == true -> {
                     throw SecurityException("Permission denied: Make sure you are authenticated and have proper permissions")
                 }
+
                 e.message?.contains("INVALID_ARGUMENT") == true -> {
                     throw IllegalArgumentException("Invalid order data: ${e.message}")
                 }
+
                 e.message?.contains("UNAUTHENTICATED") == true -> {
                     throw SecurityException("User not authenticated")
                 }
+
                 e is SecurityException -> {
                     throw e
                 }
+
                 else -> {
                     throw Exception("Failed to create order: ${e.message}")
                 }
@@ -277,12 +307,98 @@ class CustomerRepository {
         }
     }
 
+    suspend fun uploadToCloudinary(context: Context, imageUri: Uri): String? =
+        withContext(Dispatchers.IO) {
+            try {
+                val cloudName = "dpxz2favg" // ganti
+                val uploadPreset = "layanantv" // ganti
+
+                val inputStream = context.contentResolver.openInputStream(imageUri)
+                val imageBytes = inputStream?.readBytes() ?: return@withContext null
+
+                val requestBody = MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart(
+                        "file", "image.jpg",
+                        imageBytes.toRequestBody("image/*".toMediaTypeOrNull())
+                    )
+                    .addFormDataPart("upload_preset", uploadPreset)
+                    .build()
+
+                val request = Request.Builder()
+                    .url("https://api.cloudinary.com/v1_1/$cloudName/image/upload")
+                    .post(requestBody)
+                    .build()
+
+                val client = OkHttpClient()
+                val response = client.newCall(request).execute()
+
+                if (!response.isSuccessful) {
+                    Log.e("Cloudinary", "Upload failed: ${response.code}")
+                    return@withContext null
+                }
+
+                val responseBody = response.body?.string() ?: return@withContext null
+                val jsonObject = JSONObject(responseBody)
+                val imageUrl = jsonObject.getString("secure_url")
+                Log.d("Cloudinary", "Uploaded image URL: $imageUrl")
+
+                return@withContext imageUrl
+            } catch (e: Exception) {
+                Log.e("Cloudinary", "Upload failed: ${e.message}", e)
+                return@withContext null
+            }
+        }
+
+    suspend fun checkAndAddRewardPoints(userId: String) {
+        val completedOrders = getOrdersByUser(userId).filter { it.status == "completed" }
+
+        if (completedOrders.size % 1 == 0) {
+            val currentPoints = getUserPoints(userId)
+            updateUserPoints(userId, currentPoints + 1000)
+        }
+    }
+
+    suspend fun getOrdersByUser(userId: String): List<Order> {
+        return try {
+            val snapshot = firestore.collection("orders")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("status", "completed")
+                .get()
+                .await()
+
+            snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Order::class.java)?.copy(id = doc.id)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting orders by user: ${e.message}")
+            emptyList()
+        }
+    }
+
+    suspend fun updateUserPoints(userId: String, newPoints: Int): Boolean {
+        return try {
+            firestore.collection("users")
+                .document(userId)
+                .update("points", newPoints, "updatedAt", Timestamp.now())
+                .await()
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating user points: ${e.message}")
+            false
+        }
+    }
+
+
     // Create subscription record when order is completed
     // Add this improved createSubscription method to CustomerRepository
     suspend fun createSubscription(order: Order) {
         try {
             Log.d(TAG, "Creating subscription for order: ${order.id}")
-            Log.d(TAG, "Order details: userId=${order.userId}, channelId=${order.channelId}, channelName=${order.channelName}, status=${order.status}")
+            Log.d(
+                TAG,
+                "Order details: userId=${order.userId}, channelId=${order.channelId}, channelName=${order.channelName}, status=${order.status}"
+            )
 
             // Validasi user authentication
             val currentUser = auth.currentUser
@@ -293,13 +409,19 @@ class CustomerRepository {
 
             // Validasi bahwa order.userId sama dengan current user
             if (order.userId != currentUser.uid) {
-                Log.e(TAG, "User ID mismatch: order.userId=${order.userId}, currentUser.uid=${currentUser.uid}")
+                Log.e(
+                    TAG,
+                    "User ID mismatch: order.userId=${order.userId}, currentUser.uid=${currentUser.uid}"
+                )
                 throw SecurityException("User ID mismatch")
             }
 
             // Pastikan order memiliki data yang lengkap
             if (order.userId.isEmpty() || order.channelId.isEmpty() || order.channelName.isNullOrEmpty()) {
-                Log.e(TAG, "Order data incomplete: userId=${order.userId}, channelId=${order.channelId}, channelName=${order.channelName}")
+                Log.e(
+                    TAG,
+                    "Order data incomplete: userId=${order.userId}, channelId=${order.channelId}, channelName=${order.channelName}"
+                )
                 throw IllegalArgumentException("Order data is incomplete")
             }
 
@@ -318,7 +440,10 @@ class CustomerRepository {
                 .await()
 
             if (existingSubscription.documents.isNotEmpty()) {
-                Log.w(TAG, "Active subscription already exists for user ${order.userId} and channel ${order.channelId}")
+                Log.w(
+                    TAG,
+                    "Active subscription already exists for user ${order.userId} and channel ${order.channelId}"
+                )
 
                 // Update existing subscription instead of creating new one
                 val existingDoc = existingSubscription.documents.first()
@@ -339,21 +464,15 @@ class CustomerRepository {
             }
 
             // Create new subscription dengan semua field yang diperlukan sesuai rules
-            val subscription = hashMapOf(
-                "userId" to order.userId,
-                "channelId" to order.channelId,
-                "channelName" to order.channelName,
-                "subscriptionType" to order.subscriptionType,
+            val subscription = hashMapOf<String, Any>(
+                "userId" to (order.userId ?: ""),
+                "channelId" to (order.channelId ?: ""),
+                "channelName" to (order.channelName ?: ""),
+                "subscriptionType" to (order.subscriptionType ?: ""),
                 "totalAmount" to order.totalAmount,
-                "status" to "active", // Sesuai dengan validasi di rules: isValidSubscriptionStatus
+                "status" to "active",
                 "createdAt" to Timestamp.now()
             )
-
-            // Tambahkan field opsional jika ada
-            if (order.id.isNotEmpty()) {
-                subscription["orderId"] = order.id
-            }
-
             Log.d(TAG, "Creating subscription with data: $subscription")
 
             // Buat subscription baru
@@ -361,7 +480,7 @@ class CustomerRepository {
             Log.d(TAG, "Subscription created successfully with ID: ${docRef.id}")
 
             // Update order status hanya jika order.id tidak kosong
-            if (order.id.isNotEmpty()) {
+            if (order.id?.isNotEmpty() == true) {
                 try {
                     val updateData = mapOf(
                         "status" to "completed",
@@ -369,12 +488,15 @@ class CustomerRepository {
                     )
 
                     firestore.collection("orders")
-                        .document(order.id)
+                        .document(order.id.toString())
                         .update(updateData)
                         .await()
                     Log.d(TAG, "Order status updated to completed")
                 } catch (e: Exception) {
-                    Log.w(TAG, "Failed to update order status, but subscription was created successfully: ${e.message}")
+                    Log.w(
+                        TAG,
+                        "Failed to update order status, but subscription was created successfully: ${e.message}"
+                    )
                     // Tidak throw error karena subscription sudah berhasil dibuat
                 }
             }
@@ -389,18 +511,23 @@ class CustomerRepository {
                 e.message?.contains("PERMISSION_DENIED") == true -> {
                     throw SecurityException("Permission denied: Make sure you are authenticated and have proper permissions")
                 }
+
                 e.message?.contains("INVALID_ARGUMENT") == true -> {
                     throw IllegalArgumentException("Invalid subscription data: ${e.message}")
                 }
+
                 e.message?.contains("UNAUTHENTICATED") == true -> {
                     throw SecurityException("User not authenticated")
                 }
+
                 e is SecurityException -> {
                     throw e
                 }
+
                 e is IllegalArgumentException -> {
                     throw e
                 }
+
                 else -> {
                     throw Exception("Failed to create subscription: ${e.message}")
                 }
@@ -469,7 +596,16 @@ class CustomerRepository {
                             totalAmount = (data["totalAmount"] as? Number)?.toDouble() ?: 0.0,
                             status = "completed",
                             createdAt = data["createdAt"] as? Timestamp ?: Timestamp.now(),
-                            updatedAt = data["updatedAt"] as? Timestamp ?: Timestamp.now()
+                            updatedAt = data["updatedAt"] as? Timestamp ?: Timestamp.now(),
+                            userEmail = "",
+                            userName = "",
+                            originalAmount = 0.0,
+                            pointsUsed = 0,
+                            pointDiscount = 0.0,
+                            paymentVerified = true,
+                            paymentMethod = "",
+                            proofImageUrl = "",
+                            notes = ""
                         )
                     } else null
                 }
@@ -489,7 +625,7 @@ class CustomerRepository {
                     val order = doc.toObject(Order::class.java)?.copy(id = doc.id)
                     order?.let {
                         // Pastikan data channel terbaru
-                        val channel = getChannelById(it.channelId)
+                        val channel = getChannelById(it.channelId ?: "")
                         it.copy(channelName = channel?.name ?: it.channelName)
                     }
                 }
@@ -558,31 +694,12 @@ class CustomerRepository {
         }
     }
 
-    // Overloaded method for User object (keeping backward compatibility)
-    suspend fun updateUserProfile(user: User): Boolean {
-        val currentUser = auth.currentUser ?: return false
-
-        return try {
-            Log.d(TAG, "Updating user profile with User object")
-            firestore.collection("users")
-                .document(currentUser.uid)
-                .set(user)
-                .await()
-            Log.d(TAG, "User profile updated successfully")
-            true
-        } catch (e: Exception) {
-            Log.e(TAG, "Error updating user profile: ${e.message}", e)
-            e.printStackTrace()
-            false
-        }
-    }
-
     // Get user points dengan error handling yang lebih baik
-    suspend fun getUserPoints(): Int {
+    suspend fun getUserPoints(userId: String): Int {
         val currentUser = auth.currentUser ?: return 0
 
         return try {
-            Log.d(TAG, "Getting user points")
+            Log.d(TAG, "Getting user points for userId: $userId")
             val snapshot = firestore.collection("users")
                 .document(currentUser.uid)
                 .get()
@@ -622,7 +739,10 @@ class CustomerRepository {
 
             // Log setiap channel untuk debugging
             channels.forEachIndexed { index, channel ->
-                Log.d(TAG, "Channel $index: ${channel.name} (ID: ${channel.id}, Active: ${channel.isActive}, Price: ${channel.price})")
+                Log.d(
+                    TAG,
+                    "Channel $index: ${channel.name} (ID: ${channel.id}, Active: ${channel.isActive}, Price: ${channel.price})"
+                )
             }
 
             channels
@@ -693,7 +813,7 @@ class CustomerRepository {
                 val order = doc.toObject(Order::class.java)?.copy(id = doc.id)
                 order?.let {
                     // Pastikan data channel terbaru
-                    val channel = getChannelById(it.channelId)
+                    val channel = getChannelById(it.channelId ?: "")
                     it.copy(channelName = channel?.name ?: it.channelName)
                 }
             }
@@ -702,52 +822,6 @@ class CustomerRepository {
             orders
         } catch (e: Exception) {
             Log.e(TAG, "Error getting order history: ${e.message}", e)
-            e.printStackTrace()
-            emptyList()
-        }
-    }
-
-    // Method untuk mendapatkan subscription history
-    suspend fun getSubscriptionHistory(): List<Order> {
-        val currentUser = auth.currentUser ?: return emptyList()
-
-        return try {
-            Log.d(TAG, "Getting subscription history")
-            val snapshot = firestore.collection("subscriptions")
-                .whereEqualTo("userId", currentUser.uid)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
-                .get()
-                .await()
-
-            val subscriptions = snapshot.documents.mapNotNull { doc ->
-                val data = doc.data
-                if (data != null) {
-                    val channelId = data["channelId"] as? String ?: ""
-                    val channelName = data["channelName"] as? String ?: ""
-
-                    // Ambil data channel yang lebih lengkap
-                    val channel = if (channelId.isNotEmpty()) {
-                        getChannelById(channelId)
-                    } else null
-
-                    Order(
-                        id = doc.id,
-                        userId = data["userId"] as? String ?: "",
-                        channelId = channelId,
-                        channelName = channel?.name ?: channelName,
-                        subscriptionType = data["subscriptionType"] as? String ?: "",
-                        totalAmount = (data["totalAmount"] as? Number)?.toDouble() ?: 0.0,
-                        status = if (data["isActive"] as? Boolean == true) "active" else "expired",
-                        createdAt = data["createdAt"] as? Timestamp ?: Timestamp.now(),
-                        updatedAt = data["updatedAt"] as? Timestamp ?: Timestamp.now()
-                    )
-                } else null
-            }
-
-            Log.d(TAG, "Found ${subscriptions.size} subscription history records")
-            subscriptions
-        } catch (e: Exception) {
-            Log.e(TAG, "Error getting subscription history: ${e.message}", e)
             e.printStackTrace()
             emptyList()
         }
@@ -857,12 +931,15 @@ class CustomerRepository {
                 e.message?.contains("PERMISSION_DENIED") == true -> {
                     throw Exception("PERMISSION_DENIED")
                 }
+
                 e.message?.contains("NOT_FOUND") == true -> {
                     throw Exception("SUBSCRIPTION_NOT_FOUND")
                 }
+
                 e.message?.contains("UNAVAILABLE") == true -> {
                     throw Exception("SERVICE_UNAVAILABLE")
                 }
+
                 else -> {
                     throw Exception("CANCELLATION_FAILED: ${e.message}")
                 }
@@ -912,60 +989,6 @@ class CustomerRepository {
         }
     }
 
-    // Method untuk change password
-    suspend fun changePassword(currentPassword: String, newPassword: String): Boolean {
-        val currentUser = auth.currentUser ?: return false
-
-        return try {
-            Log.d(TAG, "Starting password change process")
-
-            // Re-authenticate user with current password
-            val credential = EmailAuthProvider.getCredential(currentUser.email!!, currentPassword)
-            currentUser.reauthenticate(credential).await()
-
-            Log.d(TAG, "User re-authenticated successfully")
-
-            // Update password
-            currentUser.updatePassword(newPassword).await()
-
-            Log.d(TAG, "Password updated successfully")
-            true
-        } catch (e: Exception) {
-            Log.e(TAG, "Error changing password: ${e.message}", e)
-            false
-        }
-    }
-
-    // Method untuk validate current password
-    suspend fun validateCurrentPassword(currentPassword: String): Boolean {
-        val currentUser = auth.currentUser ?: return false
-
-        return try {
-            Log.d(TAG, "Validating current password")
-            val credential = EmailAuthProvider.getCredential(currentUser.email!!, currentPassword)
-            currentUser.reauthenticate(credential).await()
-
-            Log.d(TAG, "Current password is valid")
-            true
-        } catch (e: Exception) {
-            Log.e(TAG, "Current password validation failed: ${e.message}", e)
-            false
-        }
-    }
-
-    // Method untuk reset password via email
-    suspend fun sendPasswordResetEmail(email: String): Boolean {
-        return try {
-            Log.d(TAG, "Sending password reset email to: $email")
-            auth.sendPasswordResetEmail(email).await()
-            Log.d(TAG, "Password reset email sent successfully")
-            true
-        } catch (e: Exception) {
-            Log.e(TAG, "Error sending password reset email: ${e.message}", e)
-            false
-        }
-    }
-
     // Method untuk mendapatkan semua channel (termasuk yang tidak aktif) untuk debugging
     suspend fun getAllChannels(): List<Channel> {
         return try {
@@ -981,7 +1004,10 @@ class CustomerRepository {
 
             Log.d(TAG, "Found ${channels.size} total channels")
             channels.forEach { channel ->
-                Log.d(TAG, "Channel: ${channel.name} (ID: ${channel.id}, Active: ${channel.isActive})")
+                Log.d(
+                    TAG,
+                    "Channel: ${channel.name} (ID: ${channel.id}, Active: ${channel.isActive})"
+                )
             }
 
             channels

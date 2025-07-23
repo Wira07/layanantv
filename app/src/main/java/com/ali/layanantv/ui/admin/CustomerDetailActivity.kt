@@ -63,7 +63,7 @@ class CustomerDetailActivity : AppCompatActivity() {
             tvCustomerName.text = user.name
             tvCustomerEmail.text = user.email
             tvCustomerPhone.text = user.phoneNumber ?: "-"
-            tvCustomerStatus.text = if (user.isActive) "Aktif" else "Tidak Aktif"
+            tvCustomerStatus.text = if (user.active) "Aktif" else "Tidak Aktif"
         }
     }
 }

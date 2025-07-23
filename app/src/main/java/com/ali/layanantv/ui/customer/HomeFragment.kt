@@ -69,9 +69,9 @@ class HomeFragment : Fragment() {
             }
 
             // NEW: Upload bukti pembayaran QRIS
-            binding.btnUploadPaymentProof.setOnClickListener {
-                navigateToQrisPaymentProof()
-            }
+//            binding.btnUploadPaymentProof.setOnClickListener {
+//                navigateToQrisPaymentProof()
+//            }
 
             // Point card click listener - show point info instead of redeem
             binding.pointsCard.setOnClickListener {
@@ -162,7 +162,7 @@ class HomeFragment : Fragment() {
                 if (!isAdded || binding == null) return@launch
 
                 val user = customerRepository.getCurrentUser()
-                val userPoints = customerRepository.getUserPoints()
+                val userPoints = customerRepository.getUserPoints(user?.uid ?: "")
                 val dashboardStats = customerRepository.getCustomerDashboardStats()
 
                 // Use safe binding access
@@ -192,7 +192,8 @@ class HomeFragment : Fragment() {
 
         context?.let { ctx ->
             lifecycleScope.launch {
-                val userPoints = customerRepository.getUserPoints()
+                val currentUser = customerRepository.getCurrentUser()
+                val userPoints = customerRepository.getUserPoints(currentUser?.uid ?: "")
 
                 androidx.appcompat.app.AlertDialog.Builder(ctx)
                     .setTitle("Point Rewards Anda")

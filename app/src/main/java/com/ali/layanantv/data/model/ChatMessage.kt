@@ -11,5 +11,5 @@ data class ChatMessage(
     val message: String = "",
     val messageType: String = "TEXT", // TEXT, IMAGE, FILE
     val timestamp: Timestamp = Timestamp.now(),
-    val isRead: Boolean = false
+    val read: Boolean = false
 )

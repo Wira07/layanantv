@@ -15,6 +15,6 @@ data class ChatRoom(
     val createdAt: Timestamp = Timestamp.now(),
     val updatedAt: Timestamp = Timestamp.now(),
     val unreadCount: Int = 0,
-    val isUserTyping: Boolean = false,
-    val isAdminTyping: Boolean = false
+    val userTyping: Boolean = false,
+    val adminTyping: Boolean = false
 )

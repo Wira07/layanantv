@@ -172,7 +172,7 @@ class AdminRepository {
                     phoneNumber = user.phoneNumber,
                     role = user.role,
                     createdAt = user.createdAt,
-                    isActive = user.isActive
+                    active = user.active
                 )
             }
         }
@@ -192,7 +192,7 @@ class AdminRepository {
                 phoneNumber = user.phoneNumber,
                 role = user.role,
                 createdAt = user.createdAt,
-                isActive = user.isActive
+                active = user.active
             )
         }
     }
@@ -211,27 +211,38 @@ class AdminRepository {
             .get()
             .await()
 
-        return snapshot.documents.mapNotNull { doc ->
-            doc.toObject(Order::class.java)?.let { order ->
-                Order(
+        val orders = mutableListOf<Order>()
+
+        for (doc in snapshot.documents) {
+            val orderData = doc.toObject(Order::class.java)
+            if (orderData != null) {
+                val userId = orderData.userId
+
+                // Pakai fungsi yang sudah ada di repository
+                val user = getUserById(userId)
+
+                val order = Order(
                     id = doc.id,
-                    userId = order.userId,
-                    userName = order.userName,
-                    userEmail = order.userEmail,
-                    channelId = order.channelId,
-                    channelName = order.channelName,
-                    subscriptionType = order.subscriptionType,
-                    totalAmount = order.totalAmount,
-                    status = order.status,
-                    paymentMethod = order.paymentMethod,
-                    paymentVerified = order.paymentVerified,
-                    paymentProofUrl = order.paymentProofUrl,
-                    notes = order.notes,
-                    createdAt = order.createdAt,
-                    updatedAt = order.updatedAt
+                    userId = userId,
+                    userName = user?.name ?: "Unknown",
+                    userEmail = user?.email ?: "Unknown",
+                    channelId = orderData.channelId,
+                    channelName = orderData.channelName,
+                    subscriptionType = orderData.subscriptionType,
+                    totalAmount = orderData.totalAmount,
+                    status = orderData.status,
+                    paymentMethod = orderData.paymentMethod,
+                    paymentVerified = orderData.paymentVerified,
+                    proofImageUrl = orderData.proofImageUrl,
+                    notes = orderData.notes,
+                    createdAt = orderData.createdAt,
+                    updatedAt = orderData.updatedAt
                 )
+                orders.add(order)
             }
         }
+
+        return orders
     }
 
     suspend fun getOrderById(orderId: String): Order? {
@@ -253,7 +264,7 @@ class AdminRepository {
                 status = order.status,
                 paymentMethod = order.paymentMethod,
                 paymentVerified = order.paymentVerified,
-                paymentProofUrl = order.paymentProofUrl,
+                proofImageUrl = order.proofImageUrl,
                 notes = order.notes,
                 createdAt = order.createdAt,
                 updatedAt = order.updatedAt
@@ -296,7 +307,7 @@ class AdminRepository {
                     status = order.status,
                     paymentMethod = order.paymentMethod,
                     paymentVerified = order.paymentVerified,
-                    paymentProofUrl = order.paymentProofUrl,
+                    proofImageUrl = order.proofImageUrl,
                     notes = order.notes,
                     createdAt = order.createdAt,
                     updatedAt = order.updatedAt

@@ -9,10 +9,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FieldValue
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.util.UUID
 
 class ChatRepository {
     private val firestore = FirebaseFirestore.getInstance()
@@ -104,44 +106,29 @@ class ChatRepository {
     }
 
     // Send message
-    suspend fun sendMessage(chatRoomId: String, message: String, messageType: MessageType = MessageType.TEXT): Boolean {
+    suspend fun sendMessage(chatRoomId: String, message: String, type: String): Boolean {
         val currentUser = auth.currentUser ?: return false
 
         return try {
-            Log.d(TAG, "Sending message to room: $chatRoomId")
-
-            // Get user role
-            val userDoc = firestore.collection("users").document(currentUser.uid).get().await()
-            val userRole = userDoc.getString("role") ?: "CUSTOMER"
-
             val chatMessage = ChatMessage(
+                id = UUID.randomUUID().toString(),
                 chatRoomId = chatRoomId,
                 senderId = currentUser.uid,
                 senderName = currentUser.displayName ?: "User",
-                senderRole = userRole,
+                senderRole = "CUSTOMER",
                 message = message,
-                messageType = messageType.name,
-                timestamp = Timestamp.now()
+                messageType = type,
+                timestamp = Timestamp.now(),
+                read = false
             )
 
-            // Add message to subcollection
-            firestore.collection(COLLECTION_CHAT_ROOMS)
+            firestore.collection("chat_rooms")
                 .document(chatRoomId)
-                .collection(COLLECTION_CHAT_MESSAGES)
-                .add(chatMessage)
+                .collection("chat_messages")
+                .document(chatMessage.id)
+                .set(chatMessage)
                 .await()
 
-            // Update chat room with last message
-            firestore.collection(COLLECTION_CHAT_ROOMS)
-                .document(chatRoomId)
-                .update(
-                    "lastMessage", message,
-                    "lastMessageTime", Timestamp.now(),
-                    "updatedAt", Timestamp.now()
-                )
-                .await()
-
-            Log.d(TAG, "Message sent successfully")
             true
         } catch (e: Exception) {
             Log.e(TAG, "Error sending message: ${e.message}", e)
@@ -211,6 +198,11 @@ class ChatRepository {
                 batch.update(doc.reference, "isRead", true)
             }
             batch.commit().await()
+
+            // Reset unread count
+            firestore.collection("chatRooms")
+                .document(chatRoomId)
+                .update("unreadCount", 0)
 
             Log.d(TAG, "Messages marked as read")
         } catch (e: Exception) {

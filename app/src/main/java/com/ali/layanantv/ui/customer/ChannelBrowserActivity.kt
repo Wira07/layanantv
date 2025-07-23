@@ -61,7 +61,7 @@ class ChannelBrowserActivity : AppCompatActivity() {
         // Setup RecyclerView
         channelBrowserAdapter = ChannelBrowserAdapter { channel ->
             Log.d(TAG, "Channel clicked: ${channel.name}")
-            subscribeToChannel(channel)
+//            subscribeToChannel(channel)
         }
 
         binding.rvChannels.apply {
@@ -255,92 +255,6 @@ class ChannelBrowserActivity : AppCompatActivity() {
         binding.layoutEmpty.visibility = View.VISIBLE
         binding.rvChannels.visibility = View.GONE
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-    }
-
-    private fun subscribeToChannel(channel: Channel) {
-        Log.d(TAG, "Starting subscription process for channel: ${channel.name}")
-
-        lifecycleScope.launch {
-            try {
-                showLoading(true)
-
-                // Verify user authentication
-                val currentUser = FirebaseAuth.getInstance().currentUser
-                if (currentUser == null) {
-                    Log.e(TAG, "User not authenticated")
-                    showLoading(false)
-                    Toast.makeText(this@ChannelBrowserActivity, "Silakan login terlebih dahulu", Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-
-                Log.d(TAG, "User authenticated: ${currentUser.uid}")
-
-                // Check if user is already subscribed
-                val isSubscribed = try {
-                    customerRepository.isUserSubscribedToChannel(channel.id)
-                } catch (e: Exception) {
-                    Log.w(TAG, "Error checking subscription status: ${e.message}")
-                    false
-                }
-
-                if (isSubscribed) {
-                    Log.d(TAG, "User already subscribed to ${channel.name}")
-                    showLoading(false)
-                    Toast.makeText(this@ChannelBrowserActivity, "Anda sudah berlangganan ${channel.name}", Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-
-                Log.d(TAG, "Creating subscription for channel: ${channel.name}")
-
-                // Create order with all required fields
-                val order = Order(
-                    id = "",
-                    userId = currentUser.uid,
-                    userName = currentUser.displayName ?: "Unknown User",
-                    userEmail = currentUser.email ?: "",
-                    channelId = channel.id,
-                    channelName = channel.name,
-                    subscriptionType = "monthly",
-                    totalAmount = channel.price,
-                    status = "completed",
-                    paymentMethod = "auto",
-                    paymentVerified = true,
-                    notes = "Auto subscription from channel browser",
-                    createdAt = Timestamp.now(),
-                    updatedAt = Timestamp.now()
-                )
-
-                // Create order in database
-                val orderId = customerRepository.createOrder(order)
-                Log.d(TAG, "Order saved with ID: $orderId")
-
-                // Create subscription record
-                val orderWithId = order.copy(id = orderId)
-                customerRepository.createSubscription(orderWithId)
-                Log.d(TAG, "Subscription created for order: $orderId")
-
-                showLoading(false)
-                Toast.makeText(this@ChannelBrowserActivity, "Berhasil berlangganan ${channel.name}!", Toast.LENGTH_SHORT).show()
-
-                Log.d(TAG, "Subscription process completed successfully")
-
-                setResult(RESULT_OK)
-                finish()
-
-            } catch (e: Exception) {
-                Log.e(TAG, "Error in subscription process: ${e.message}", e)
-                showLoading(false)
-
-                val errorMessage = when {
-                    e.message?.contains("PERMISSION_DENIED") == true -> "Tidak memiliki izin untuk berlangganan. Silakan hubungi administrator."
-                    e.message?.contains("UNAUTHENTICATED") == true -> "Silakan login terlebih dahulu."
-                    e.message?.contains("UNAVAILABLE") == true -> "Layanan tidak tersedia. Silakan coba lagi nanti."
-                    else -> "Terjadi kesalahan saat berlangganan. Silakan coba lagi."
-                }
-
-                Toast.makeText(this@ChannelBrowserActivity, errorMessage, Toast.LENGTH_LONG).show()
-            }
-        }
     }
 
     override fun onResume() {

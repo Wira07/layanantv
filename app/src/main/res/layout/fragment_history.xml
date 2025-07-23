@@ -48,6 +48,7 @@
                 android:textColor="@color/text_secondary" />
 
             <TextView
+                android:id="@+id/tv_total_orders"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="12 Transaksi"
@@ -57,29 +58,30 @@
 
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="4dp">
+<!--        <LinearLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="horizontal"-->
+<!--            android:layout_marginBottom="4dp">-->
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Point Terkumpul:"
-                android:textSize="14sp"
-                android:textColor="@color/text_secondary" />
+<!--            <TextView-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_weight="1"-->
+<!--                android:text="Point Terkumpul:"-->
+<!--                android:textSize="14sp"-->
+<!--                android:textColor="@color/text_secondary" />-->
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="2500 Point"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/primary_color" />
+<!--            <TextView-->
+<!--                android:id="@+id/tv_total_points"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="2500 Point"-->
+<!--                android:textSize="14sp"-->
+<!--                android:textStyle="bold"-->
+<!--                android:textColor="@color/primary_color" />-->
 
-        </LinearLayout>
+<!--        </LinearLayout>-->
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -95,6 +97,7 @@
                 android:textColor="@color/text_secondary" />
 
             <TextView
+                android:id="@+id/tv_total_spending"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Rp 1.200.000"

@@ -21,7 +21,7 @@ class CustomerAdapter(
                 tvCustomerName.text = user.name
                 tvCustomerEmail.text = user.email
                 tvCustomerPhone.text = user.phoneNumber ?: "-"
-                switchStatus.isChecked = user.isActive
+                switchStatus.isChecked = user.active
 
                 // Set click listener for the whole item
                 root.setOnClickListener {
@@ -30,7 +30,7 @@ class CustomerAdapter(
 
                 // Set click listener for the switch
                 switchStatus.setOnCheckedChangeListener { _, isChecked ->
-                    if (isChecked != user.isActive) {
+                    if (isChecked != user.active) {
                         onToggleStatus(user)
                     }
                 }

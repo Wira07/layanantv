@@ -120,7 +120,7 @@
                             android:drawablePadding="8dp"
                             android:text="WhatsApp"
                             android:textColor="@android:color/white"
-                            android:textSize="12sp" />
+                            android:textSize="11sp" />
 
                         <Button
                             android:id="@+id/btn_contact_email"

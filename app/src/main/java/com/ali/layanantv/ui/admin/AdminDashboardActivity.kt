@@ -58,11 +58,11 @@ class AdminDashboardActivity : AppCompatActivity() {
         }
 
         // Add Payment Verification button
-        binding.btnPaymentVerification.isEnabled = true
-        binding.btnPaymentVerification.alpha = 1.0f
-        binding.btnPaymentVerification.setOnClickListener {
-            startActivity(Intent(this, AdminPaymentVerificationActivity::class.java))
-        }
+//        binding.btnPaymentVerification.isEnabled = true
+//        binding.btnPaymentVerification.alpha = 1.0f
+//        binding.btnPaymentVerification.setOnClickListener {
+//            startActivity(Intent(this, AdminPaymentVerificationActivity::class.java))
+//        }
 
         binding.btnChat.isEnabled = true
         binding.btnChat.alpha = 1.0f

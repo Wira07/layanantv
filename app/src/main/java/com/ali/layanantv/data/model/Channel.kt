@@ -7,7 +7,7 @@ data class Channel(
     val name: String = "",
     val description: String = "",
     val logoUrl: String = "",
-    val logoBase64: String = "", // Tambahan untuk menyimpan logo sebagai Base64
+    val logoBase64: String = "",
     val price: Double = 0.0,
     val category: String = "",
     val isActive: Boolean = true,

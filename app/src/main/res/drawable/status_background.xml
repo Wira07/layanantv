@@ -1,23 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Shadow Background -->
-    <item>
-        <shape xmlns:android="http://schemas.android.com/apk/res/android">
-            <solid android:color="#66000000"/> <!-- Transparent shadow color -->
-            <corners android:radius="20dp"/> <!-- Rounded corners -->
-        </shape>
-    </item>
-
     <!-- Gradient Background -->
-    <item android:right="10dp" android:left="10dp" android:top="10dp" android:bottom="10dp">
+    <item>
         <shape xmlns:android="http://schemas.android.com/apk/res/android">
             <gradient
                 android:angle="45"
+                android:endColor="#FF69B4"
+                android:gradientRadius="90"
                 android:startColor="#FF1493"
-            android:endColor="#FF69B4"
-            android:type="linear"
-            android:gradientRadius="90"/>
-            <corners android:radius="20dp"/>
+                android:type="linear" />
+            <corners android:radius="20dp" />
         </shape>
     </item>
 </layer-list>

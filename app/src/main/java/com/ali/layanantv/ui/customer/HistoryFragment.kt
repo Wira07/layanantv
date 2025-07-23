@@ -41,6 +41,7 @@ class HistoryFragment : Fragment() {
 
         setupUI()
         loadPurchaseHistory()
+        loadDashboardStats()
     }
 
     private fun setupUI() {
@@ -102,6 +103,24 @@ class HistoryFragment : Fragment() {
             binding.btnFilterExpired.isSelected = currentFilter == "cancelled"
         }
     }
+
+    private fun loadDashboardStats() {
+        lifecycleScope.launch {
+            try {
+                val stats = customerRepository.getCustomerDashboardStats()
+                android.util.Log.d("HistoryFragment", "Stats: $stats")
+
+                _binding?.let { binding ->
+                    binding.tvTotalOrders.text = "${stats.totalOrders} Transaksi"
+                    binding.tvTotalSpending.text = "Rp ${String.format("%,d", stats.pendingOrders * 100000)}"
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("HistoryFragment", "Error loading stats", e)
+                showError("Gagal memuat statistik")
+            }
+        }
+    }
+
 
     private fun loadPurchaseHistory() {
         lifecycleScope.launch {
